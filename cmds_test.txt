@@ -1,0 +1,9 @@
+npx asb && near deploy
+
+near call neutrino.testnet createUser '{"alias": "Hieu", "bio":"Hieu", "avatar": "Hieu"}'  --account-id neutrino.testnet
+
+near call neutrino.testnet createMatch '{"mode": 1, "bet":"0"}'  --account-id neutrino.testnet
+
+near call neutrino.testnet getMatch  --account-id neutrino.testnet
+
+near call neutrino.testnet updateMatch '{"id": "C1tbALg81eAv864kXLhRtnboYsioYRmznVNfmMzKKGdEc6gY", "state":1}'  --account-id neutrino.testnet
