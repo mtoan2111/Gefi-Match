@@ -1,10 +1,11 @@
 import * as match from "./match";
 import * as user from "./user";
-import { Match, MatchMode } from "./model";
+import { AccountId, Match, MatchMode } from "./model";
 import { User } from "./model";
+import { u128 } from "near-sdk-as";
 
-export function createMatch(mode: MatchMode): String {
-    return match.createMatch(mode);
+export function createMatch(mode: MatchMode, bet: u128): String {
+    return match.createMatch(mode, bet);
 }
 
 export function createUser(alias: string, bio: string, avatar: string): User {
@@ -12,5 +13,13 @@ export function createUser(alias: string, bio: string, avatar: string): User {
 }
 
 export function getMatch(): Match[] {
-    return match.getMatch()
+    return match.getMatch();
+}
+
+export function getUser(): User[] {
+    return user.getUser();
+}
+
+export function deleteUser(id: AccountId): boolean {
+    return user.deleteUser(id);
 }

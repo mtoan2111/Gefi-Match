@@ -1,5 +1,6 @@
-import { Context, PersistentMap, PersistentVector, math, PersistentSet, logging } from "near-sdk-as";
-import { Match, MatchMode, MatchState } from "./model";
+import { Context, PersistentMap, PersistentVector, math, PersistentSet, logging, util, base58, u128 } from "near-sdk-as";
+import { Match, MatchMode, MatchState, User } from "./model";
+import { createUser, userIdsPersistentMap } from "./user";
 
 let waitingMatch = new PersistentVector<Match>("w");
 let runningMatch = new PersistentVector<Match>("r");
@@ -19,16 +20,23 @@ let idGenerated = new PersistentSet<String>("i");
  * @returns
  * id of match
  */
-export function createMatch(mode: MatchMode): String {
-    logging.log("creating match");
-    let matchId: String = "2";
-    // while (matchId == "") {
-    //     let idTmp: String = _makeid(32);
-    //     if (!idGenerated.has(idTmp)) {
-    //         matchId = idTmp;
-    //         idGenerated.add(idTmp);
-    //     }
-    // }
+export function createMatch(mode: MatchMode, bet: u128): String {
+    let matchId: String = "";
+    assert(userIdsPersistentMap.contains(Context.sender), "User not found. Could not create the match");
+    const user: User = userIdsPersistentMap.getSome(Context.sender);
+    // logging.log(user.token);
+    logging.log("token: " + user.token.toString());
+    logging.log("bet: " + bet.toString());
+    assert(user.token > bet, "Your balance is not enough!");
+
+    while (matchId == "") {
+        const idTmp = Context.sender + Context.blockTimestamp.toString();
+        const idHash = base58.encode(util.stringToBytes(idTmp));
+        if (!idGenerated.has(idHash)) {
+            matchId = idHash;
+            idGenerated.add(idHash);
+        }
+    }
 
     logging.log("createMatch from: " + Context.sender + " bet: " + Context.attachedDeposit.toString());
 
