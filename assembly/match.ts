@@ -1,11 +1,11 @@
-import { Context, PersistentMap, PersistentVector, math, PersistentSet, logging, util, base58, u128 } from "near-sdk-as";
+import { Context, PersistentMap, PersistentVector, math, PersistentSet, logging, util, base58, u128, PersistentUnorderedMap } from "near-sdk-as";
 import { Match, MatchMode, MatchState, User } from "./model";
-import { createUser, userIdsPersistentMap } from "./user";
+import { createUser, users } from "./user";
 
-let waitingMatch = new PersistentVector<Match>("w");
-let runningMatch = new PersistentVector<Match>("r");
-let finishedMatch = new PersistentVector<Match>("f");
-let idGenerated = new PersistentSet<String>("i");
+let waitingMatch = new PersistentUnorderedMap<String, Match>("w");
+let runningMatch = new PersistentUnorderedMap<String, Match>("r");
+let finishedMatch = new PersistentUnorderedMap<String, Match>("f");
+// let idGenerated = new PersistentSet<String>("i")
 
 /**
  * Change Function
@@ -22,26 +22,23 @@ let idGenerated = new PersistentSet<String>("i");
  */
 export function createMatch(mode: MatchMode, bet: u128): String {
     let matchId: String = "";
-    assert(userIdsPersistentMap.contains(Context.sender), "User not found. Could not create the match");
-    const user: User = userIdsPersistentMap.getSome(Context.sender);
-    // logging.log(user.token);
+    assert(users.contains(Context.sender), "User not found. Could not create the match");
+    const user: User = users.getSome(Context.sender);
     logging.log("token: " + user.token.toString());
     logging.log("bet: " + bet.toString());
-    // assert(user.token > bet, "Your balance is not enough!");
-    assert(u128.ge(user.token,bet), "Your balance is not enough!");
+    assert(u128.ge(user.token, bet), "Your balance is not enough!");
 
     while (matchId == "") {
         const idTmp = Context.sender + Context.blockTimestamp.toString();
         const idHash = base58.encode(util.stringToBytes(idTmp));
-        if (!idGenerated.has(idHash)) {
+        if (!waitingMatch.contains(idHash)) {
             matchId = idHash;
-            idGenerated.add(idHash);
         }
     }
 
     logging.log("createMatch from: " + Context.sender + " bet: " + Context.attachedDeposit.toString());
 
-    waitingMatch.push(new Match(matchId, Context.attachedDeposit, mode));
+    waitingMatch.set(matchId, new Match(matchId, Context.attachedDeposit, mode));
     return matchId;
 }
 
@@ -50,12 +47,7 @@ export function createMatch(mode: MatchMode, bet: u128): String {
  */
 
 export function getMatch(): Match[] {
-  const waitingMatchLength = waitingMatch.length;
-  let results = new Array<Match>(waitingMatchLength);
-  for (let i = 0; i < waitingMatchLength; i++) {
-    results[i] = waitingMatch[i];
-  }
-  return results;
+    return waitingMatch.values();
 }
 
 /**
@@ -78,22 +70,22 @@ export function updateMatch(id: string, state: MatchState): bool {
   logging.log("Updating match: " + id + "State: " + state.toString());
   const finishedMatchLength = finishedMatch.length;
   const runningMatchLength = runningMatch.length;
-  let matchIndex: i32;
+  let match: Match | null;
   switch (state) {
     case MatchState.RUNNING:
-        matchIndex = getMatchId(id, waitingMatch);
-        if (matchIndex > -1) {
-            runningMatch.push(waitingMatch[matchIndex]);
-            logging.log("waitingMatch[matchIndex]" + waitingMatch[matchIndex].id);
-            waitingMatch.swap_remove(matchIndex);
+        match = waitingMatch.getSome(id);
+        if (match) {
+            match.state = MatchState.RUNNING;
+            runningMatch.set(id, match);
+            waitingMatch.delete(id);
         }
         break;
     case MatchState.FINISHED:
-        matchIndex = getMatchId(id, runningMatch);
-        if (matchIndex > -1) {
-            finishedMatch.push(runningMatch[matchIndex]);
-            logging.log("runningMatch[matchIndex]" + runningMatch[matchIndex].id)
-            runningMatch.swap_remove(matchIndex);
+        match = runningMatch.getSome(id);
+        if (match) {
+            match.state = MatchState.FINISHED;
+            finishedMatch.set(id, match);
+            runningMatch.delete(id);
         }
         break;
     default: 
@@ -101,13 +93,4 @@ export function updateMatch(id: string, state: MatchState): bool {
   }
   let result: bool = true;
   return result;
-}
-
-function getMatchId(id: string, matchVector: PersistentVector<Match>): i32 {
-  for (let i: i32 = 0; i < matchVector.length; i++) {
-    if (matchVector[i].id === id) {
-      return i;
-    }
-  }
-  return -1;
 }

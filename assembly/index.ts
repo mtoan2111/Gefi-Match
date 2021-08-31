@@ -27,3 +27,7 @@ export function getUser(): User[] {
 export function deleteUser(id: AccountId): boolean {
     return user.deleteUser(id);
 }
+
+export function topUp(): User {
+    return user.topUp();
+}
