@@ -46,11 +46,12 @@ export class Match {
 @nearBindgen
 export class User {
     id: AccountId;
-    token: u64;
+    token: u128;
     win: u64;
     lose: u64;
     rank: UserRank;
     constructor(public alias: String, public bio: String, public avatar: String) {
+        this.token = u128.Zero;
         this.id = Context.sender;
         this.rank = UserRank.CHICKEN;
     }
