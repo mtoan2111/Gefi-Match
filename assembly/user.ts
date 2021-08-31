@@ -10,6 +10,9 @@ export function createUser(alias: string, bio: string, avatar: string): User {
         /**
          * Nếu attachedDeposit lớn hơn 0 thì topup vào tài khoản user
          */
+        if (u128.gt(Context.attachedDeposit, u128.from("0"))) {
+            topUp();
+        }
         return users.getSome(Context.sender);
     }
 
