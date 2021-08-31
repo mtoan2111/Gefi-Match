@@ -16,8 +16,12 @@ export function getMatch(): Match[] {
     return match.getMatch();
 }
 
-export function getUser(): User[] {
-    return user.getUser();
+export function getUsers(): User[] {
+    return user.getUsers();
+}
+
+export function getUser(id: AccountId): User | null {
+    return user.getUser(id);
 }
 
 export function deleteUser(id: AccountId): boolean {
@@ -26,4 +30,8 @@ export function deleteUser(id: AccountId): boolean {
 
 export function topUp(): User {
     return user.topUp();
+}
+
+export function widthDraw(value: u128) {
+    
 }

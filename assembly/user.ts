@@ -34,7 +34,14 @@ export function updateUser(alias: string, bio: string, avatar: string): boolean 
     return false;
 }
 
-export function getUser(): User[] {
+export function getUser(id: AccountId): User | null {
+    if (users.contains(id)) {
+        return users.getSome(id);
+    }
+    return null;
+}
+
+export function getUsers(): User[] {
     return users.values();
 }
 
@@ -44,6 +51,13 @@ export function deleteUser(id: AccountId): boolean {
         return true;
     }
     return false;
+}
+
+export function getHistory(id: AccountId): History[] {
+    if (userHistories.contains(id)) {
+        return userHistories.getSome(id).values();
+    }
+    return new Array<History>(0);
 }
 
 export function topUp(): User {
@@ -62,4 +76,7 @@ export function topUp(): User {
         users.set(Context.sender, user);
     }
     return user;
+}
+
+export function withDraw(){
 }
