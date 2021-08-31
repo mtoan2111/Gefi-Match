@@ -1,4 +1,4 @@
-import { Context, PersistentMap, PersistentVector, math, PersistentSet } from "near-sdk-as";
+import { Context, PersistentMap, PersistentVector, math, PersistentSet, logging } from "near-sdk-as";
 import { Match, MatchMode, MatchState } from "./model";
 
 let waitingMatch = new PersistentVector<Match>("w");
@@ -19,17 +19,20 @@ let idGenerated = new PersistentSet<String>("i");
  * @returns
  * id of match
  */
-export function createMatch(state: MatchState, mode: MatchMode): String {
-    let matchId: String = "";
-    while (matchId == "") {
-        let idTmp: String = _makeid(32);
-        if (!idGenerated.has(idTmp)) {
-            matchId = idTmp;
-            idGenerated.add(idTmp);
-        }
-    }
+export function createMatch(mode: MatchMode): String {
+    logging.log("creating match");
+    let matchId: String = "2";
+    // while (matchId == "") {
+    //     let idTmp: String = _makeid(32);
+    //     if (!idGenerated.has(idTmp)) {
+    //         matchId = idTmp;
+    //         idGenerated.add(idTmp);
+    //     }
+    // }
 
-    waitingMatch.push(new Match(matchId, state, Context.attachedDeposit, mode));
+    logging.log("createMatch from: " + Context.sender + " bet: " + Context.attachedDeposit.toString());
+
+    waitingMatch.push(new Match(matchId, Context.attachedDeposit, mode));
     return matchId;
 }
 
@@ -50,11 +53,11 @@ export function getMatch(): Match[] {
  * Private function
  */
 function _makeid(length: i32): String {
-    var result = "";
+    var result: String = "";
     var characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     var charactersLength = characters.length;
     for (var i = 0; i < length; i++) {
-        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+        result += characters.charAt(<i32>Math.floor(<i32>Math.random() * charactersLength));
     }
     return result;
 }

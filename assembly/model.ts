@@ -35,8 +35,10 @@ export class Match {
     owner: AccountId;
     competitor: AccountId;
     created: u64;
-    constructor(public id: String, public state: MatchState, public bet: u128, public mode: MatchMode) {
+    state: MatchState;
+    constructor(public id: String, public bet: u128, public mode: MatchMode) {
         this.created = Context.blockTimestamp;
+        this.state = MatchState.WAITING;
         this.owner = Context.sender;
     }
 }
