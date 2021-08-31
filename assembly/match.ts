@@ -71,6 +71,7 @@ export function updateMatch(id: string, state: MatchState): bool {
   const finishedMatchLength = finishedMatch.length;
   const runningMatchLength = runningMatch.length;
   let match: Match | null;
+  let result: bool = true;
   switch (state) {
     case MatchState.RUNNING:
         match = waitingMatch.getSome(id);
@@ -89,8 +90,9 @@ export function updateMatch(id: string, state: MatchState): bool {
         }
         break;
     default: 
+        assert(!state, "Invalid State!");
+        result = false;
         break;
   }
-  let result: bool = true;
   return result;
 }
