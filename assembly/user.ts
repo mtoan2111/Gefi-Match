@@ -1,7 +1,8 @@
 import { Context, logging, PersistentMap, PersistentSet, PersistentUnorderedMap, PersistentVector, u128 } from "near-sdk-as";
-import { AccountId, NEAR_RATE, NEAR_YOCTO, User } from "./model";
+import { AccountId, History, NEAR_RATE, NEAR_YOCTO, User } from "./model";
 
 export let users = new PersistentUnorderedMap<String, User>("um");
+export let userHistories = new PersistentMap<String, PersistentSet<History>>("uh");
 // let userId = new PersistentSet<String>("us");
 
 export function createUser(alias: string, bio: string, avatar: string): User {
@@ -19,6 +20,18 @@ export function createUser(alias: string, bio: string, avatar: string): User {
     const user = new User(alias, bio, avatar);
     users.set(Context.sender, user);
     return user;
+}
+
+export function updateUser(alias: string, bio: string, avatar: string): boolean {
+    if (users.contains(Context.sender)) {
+        let user = users.getSome(Context.sender);
+        user.alias = alias;
+        user.bio = bio;
+        user.avatar = avatar;
+        users.set(Context.sender, user);
+        return true;
+    }
+    return false;
 }
 
 export function getUser(): User[] {
