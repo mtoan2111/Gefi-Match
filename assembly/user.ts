@@ -78,5 +78,5 @@ export function topUp(): User {
     return user;
 }
 
-export function withDraw(){
+export function withDraw(): void{
 }
