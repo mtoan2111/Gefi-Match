@@ -42,27 +42,6 @@ export function createMatch(mode: MatchMode, bet: u128): String {
     return matchId;
 }
 
-/**
- * View function
- */
-
-export function getMatch(): Match[] {
-    return waitingMatch.values();
-}
-
-/**
- * Private function
- */
-function _makeid(length: i32): String {
-    var result: String = "";
-    var characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    var charactersLength = characters.length;
-    for (var i = 0; i < length; i++) {
-        result += characters.charAt(<i32>Math.floor(<i32>Math.random() * charactersLength));
-    }
-    return result;
-}
-
 export function updateMatch(id: string, state: MatchState, result: MatchResult, winner: AccountId): bool {
     logging.log("Updating match: " + id + "State: " + state.toString());
     const finishedMatchLength = finishedMatch.length;
@@ -92,4 +71,42 @@ export function updateMatch(id: string, state: MatchState, result: MatchResult, 
             break;
     }
     return ret;
+}
+
+/**
+ * 
+ * Lấy trận đấu từ list waiting ra bằng Id => Throw exception nếu không tìm thấy
+ * Lấy thông tin người chơi từ users ra => Throw exception nếu không tìm thấy
+ * Kiểm tra số token của người chơi có lớn hơn hoặc bằng bet của trận không => Throw exception
+ * Nếu kiểm tra điều kiện thành công => 
+ * Chuyển trận sang trạng thái running
+ * Trừ tiền ngay của người tham gia
+ * 
+ */
+export function joinMatch(id: string, accountId: AccountId): bool {
+    let ret = true;
+    return ret;
+}
+
+
+/**
+ * View function
+ */
+
+ export function getMatch(): Match[] {
+    return waitingMatch.values();
+}
+
+
+/**
+ * Private function
+ */
+ function _makeid(length: i32): String {
+    var result: String = "";
+    var characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    var charactersLength = characters.length;
+    for (var i = 0; i < length; i++) {
+        result += characters.charAt(<i32>Math.floor(<i32>Math.random() * charactersLength));
+    }
+    return result;
 }
