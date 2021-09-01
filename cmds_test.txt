@@ -1,15 +1,17 @@
 npx asb && near deploy
 
-near call neutrino.testnet createUser '{"alias": "Hieu", "bio":"Hieu", "avatar": "Hieu"}'  --account-id neutrino.testnet
+near call neutrino.testnet createUser '{"alias": "Hieu", "bio":"Hieu", "avatar": "Hieu"}'  --account-id neutrino.testnet --deposit 10
 
 near call neutrino.testnet createMatch '{"mode": 1, "bet":1000}'  --account-id neutrino.testnet
 
 near call neutrino.testnet getMatch  --account-id neutrino.testnet
 
-near call neutrino.testnet getUser  --account-id neutrino.testnet
+near call neutrino.testnet getUser  '{"id": "neutrino.testnet"}' --account-id neutrino.testnet
 
 near call neutrino.testnet topUp  --account-id neutrino.testnet
 
-near call neutrino.testnet updateMatch '{"id": "C1tbALg81eAv864kXLhRtnboYsioYTyvzkrkHMncGaMPuMtM", "state":1, "result":0, "winner":"neutrino.testnet"}'  --account-id neutrino.testnet
+near call neutrino.testnet updateMatch '{"id": "C1tbALg81eAv864kXLhRtnboYsioa39jJvS3iD6ZWjJ7K6xw", "state":2, "result":0, "winner":"neutrino.testnet"}'  --account-id neutrino.testnet
 
-near call neutrino.testnet transfer '{"new_owner_id":"neutrino.testnet", "amount":50}' --accountId neutrino.testnet
+near call neutrino.testnet joinMatch '{"id":"C1tbALg81eAv864kXLhRtnboYsioa39jJvS3iD6ZWjJ7K6xw", "accountId":"gefitesth.testnet"}' --accountId gefitesth.testnet
+
+--gas=300000000000000

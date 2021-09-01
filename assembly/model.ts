@@ -1,4 +1,4 @@
-import { Context, u128 } from "near-sdk-as";
+import { Context, logging, u128 } from "near-sdk-as";
 
 export const NEAR_YOCTO = "1000000000000000000000000";
 export const NEAR_RATE = "1000";

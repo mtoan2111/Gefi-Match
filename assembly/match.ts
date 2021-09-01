@@ -52,6 +52,7 @@ export function createMatch(mode: MatchMode, bet: u128): String {
   assert(u128.ge(user.token, bet), "Your balance is not enough!");
   // Sub user token
   user.token = u128.sub(user.token, bet);
+  users.set(user.id, user);
   while (matchId == "") {
     const idTmp = Context.sender + Context.blockTimestamp.toString();
     const idHash = base58.encode(util.stringToBytes(idTmp));
@@ -62,12 +63,12 @@ export function createMatch(mode: MatchMode, bet: u128): String {
 
   logging.log(
     "createMatch from: " +
-      Context.sender +
-      " bet: " +
-      Context.attachedDeposit.toString()
+    Context.sender +
+    " bet: " +
+    Context.attachedDeposit.toString()
   );
 
-  waitingMatch.set(matchId, new Match(matchId, Context.attachedDeposit, mode));
+  waitingMatch.set(matchId, new Match(matchId, bet, mode));
   return matchId;
 }
 
@@ -91,7 +92,7 @@ export function updateMatch(
   result: MatchResult = 0,
   winner: AccountId = ""
 ): bool {
-  logging.log("Updating match: " + id + "State: " + state.toString());
+  logging.log("Updating match: " + id + " State: " + state.toString());
   let match: Match | null;
   let ret: bool = true;
   switch (state) {
@@ -106,6 +107,7 @@ export function updateMatch(
     case MatchState.FINISHED:
       match = runningMatch.getSome(id);
       if (match) {
+        logging.log("Match Finished!");
         match.state = MatchState.FINISHED;
         finishedMatch.set(id, match);
         runningMatch.delete(id);
@@ -115,30 +117,46 @@ export function updateMatch(
         if (result === MatchResult.TIE) {
           // Return token for all competitor
           // Return token for Owner
+          logging.log("MatchResult: TIE");
           let owner: User = users.getSome(fMatch.owner);
           owner.token = withDrawToken(owner.token, fMatch.bet);
+          logging.log("New Owner Token: " + owner.token.toString());
+          users.set(owner.id, owner);
           // Return token for Competitor
           let competitor: User = users.getSome(fMatch.competitor);
           competitor.token = withDrawToken(competitor.token, fMatch.bet);
+          logging.log("New Competitor Token: " + competitor.token.toString());
+          users.set(competitor.id, competitor);
+          // historyUpdateUser(fMatch.owner, new History(fMatch.competitor, fMatch.mode, u128.from(fMatch.bet), MatchResult.TIE));
+          // historyUpdateUser(fMatch.competitor, new History(fMatch.owner, fMatch.mode, u128.from(fMatch.bet), MatchResult.TIE));
         } else {
           assert(
             users.contains(winner),
             "User not found. Could not update the match"
           );
+          logging.log("MatchResult: " + result.toString());
           let bet: u128 = finishedMatch.getSome(id).bet;
           // Add token for winner
-          const user: User = users.getSome(winner);
+          let user: User = users.getSome(winner);
           // user.token = user.token + bet*2*(1-FEE_PERCENT)
           user.token = withDrawToken(user.token, u128.mul(bet, u128.from(2)));
+          logging.log("New Winner Token: " + user.token.toString());
+          users.set(winner, user);
+          // let ownerHis: History = new History(fMatch.competitor, fMatch.mode, bet, MatchResult.WIN);
+          // let competitorHis: History = new History(fMatch.owner, fMatch.mode, bet, MatchResult.LOSE);
+
+          historyUpdateUser(fMatch.competitor, fMatch.owner, fMatch.mode, u128.from(fMatch.bet), MatchResult.LOSE);
+          historyUpdateUser(fMatch.competitor, fMatch.owner, fMatch.mode, u128.from(fMatch.bet), MatchResult.LOSE);
+
+          // historyUpdateUser(fMatch.owner, fMatch.competitor, fMatch.mode, u128.from(fMatch.bet), MatchResult.WIN);
+          // if (winner === fMatch.owner) {
+          //   historyUpdateUser(fMatch.owner, new History(fMatch.competitor, fMatch.mode, u128.from(fMatch.bet), MatchResult.WIN));
+          //   historyUpdateUser(fMatch.competitor, new History(fMatch.owner, fMatch.mode, u128.from(fMatch.bet), MatchResult.LOSE));
+          // } else {
+          //   historyUpdateUser(fMatch.owner, new History(fMatch.competitor, fMatch.mode, u128.from(fMatch.bet), MatchResult.LOSE));
+          //   historyUpdateUser(fMatch.competitor, new History(fMatch.owner, fMatch.mode, u128.from(fMatch.bet), MatchResult.WIN));
+          // }
         }
-        // Save History
-        if (!userHistories.contains(id)) {
-          let userHis = new PersistentSet<History>(id);
-          userHistories.set(id, userHis);
-        }
-        userHistories
-          .getSome(id)
-          .add(new History(fMatch.competitor, fMatch.mode, fMatch.bet, result));
       }
       break;
     case MatchState.CANCELED:
@@ -146,6 +164,7 @@ export function updateMatch(
       // Return token for Owner
       let owner: User = users.getSome(cMatch.owner);
       owner.token = withDrawToken(owner.token, cMatch.bet, false);
+      users.set(owner.id, owner);
       break;
     default:
       assert(!state, "Invalid State!");
@@ -177,7 +196,7 @@ export function joinMatch(id: string, accountId: AccountId): bool {
   let match: Match = waitingMatch.getSome(id);
   assert(
     match && match.state === MatchState.WAITING,
-    "Current Match is available"
+    "Current Match is not available"
   );
   // Check if user's balance is enough
   let bet: u128 = match.bet;
@@ -185,9 +204,9 @@ export function joinMatch(id: string, accountId: AccountId): bool {
   logging.log("bet: " + bet.toString());
   assert(u128.ge(user.token, bet), "Your balance is not enough!");
   // Change Match State => running
+  user.token = u128.sub(user.token, match.bet);
+  users.set(user.id, user);
   updateMatch(id, MatchState.RUNNING);
-  // Reduce user.token
-  user.token = u128.sub(user.token, bet);
   return ret;
 }
 
@@ -228,4 +247,15 @@ function withDrawToken(userToken: u128, token: u128, avFee: bool = true): u128 {
   }
   userToken = u128.add(userToken, receivedToken);
   return userToken;
+}
+
+function historyUpdateUser(id: AccountId, competitor: AccountId, mode: MatchMode, bet: u128, result: MatchResult): void {
+  let usrHistory: History = new History(competitor, mode, bet, result);
+  if (!userHistories.contains(id)) {
+    let userHis = new PersistentSet<History>(id.toString());
+    userHistories.set(id, userHis);
+  }
+  userHistories
+    .getSome(id)
+    .add(usrHistory);
 }
