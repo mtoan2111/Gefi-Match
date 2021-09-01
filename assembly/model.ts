@@ -2,6 +2,7 @@ import { Context, u128 } from "near-sdk-as";
 
 export const NEAR_YOCTO = "1000000000000000000000000";
 export const NEAR_RATE = "1000";
+export const FEE_PERCENT = "0.004"
 
 export type AccountId = String;
 
@@ -9,6 +10,7 @@ export enum MatchState {
     WAITING,
     RUNNING,
     FINISHED,
+    CANCELED
 }
 
 export enum MatchMode {
@@ -64,7 +66,7 @@ export class User {
 @nearBindgen
 export class History {
     created: u64;
-    constructor(public competitor: AccountId, public state: String, public mode: MatchMode, public bet: u64, public result: MatchResult) {
+    constructor(public competitor: AccountId, public mode: MatchMode, public bet: u128, public result: MatchResult) {
         this.created = Context.blockTimestamp;
     }
 }

@@ -40,4 +40,6 @@ export function topUp(): User {
     return user.topUp();
 }
 
-export function widthDraw(value: u128) {}
+export function widthDraw(value: u128): bool {
+    return user.withDraw();
+}
