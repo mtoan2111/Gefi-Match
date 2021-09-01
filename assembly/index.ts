@@ -1,6 +1,6 @@
 import * as match from "./match";
 import * as user from "./user";
-import { AccountId, Match, MatchMode, MatchState } from "./model";
+import { AccountId, Match, MatchMode, MatchResult, MatchState } from "./model";
 import { User } from "./model";
 import { u128 } from "near-sdk-as";
 
@@ -13,11 +13,11 @@ export function createUser(alias: string, bio: string, avatar: string): User {
 }
 
 export function getMatch(): Match[] {
-    return match.getMatch()
+    return match.getMatch();
 }
 
-export function updateMatch(id: string, state: MatchState): bool {
-    return match.updateMatch(id, state);
+export function updateMatch(id: string, state: MatchState, result: MatchResult, winner: AccountId): bool {
+    return match.updateMatch(id, state, result, winner);
 }
 
 export function getUsers(): User[] {
@@ -36,6 +36,4 @@ export function topUp(): User {
     return user.topUp();
 }
 
-export function widthDraw(value: u128) {
-    
-}
+export function widthDraw(value: u128) {}
