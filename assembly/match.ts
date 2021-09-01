@@ -1,5 +1,5 @@
 import { Context, PersistentMap, PersistentVector, math, PersistentSet, logging, util, base58, u128, PersistentUnorderedMap } from "near-sdk-as";
-import { Match, MatchMode, MatchState, User } from "./model";
+import { AccountId, Match, MatchMode, MatchResult, MatchState, User } from "./model";
 import { createUser, users } from "./user";
 
 let waitingMatch = new PersistentUnorderedMap<String, Match>("w");
@@ -54,45 +54,42 @@ export function getMatch(): Match[] {
  * Private function
  */
 function _makeid(length: i32): String {
-  var result: String = "";
-  var characters =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  var charactersLength = characters.length;
-  for (var i = 0; i < length; i++) {
-    result += characters.charAt(
-      <i32>Math.floor(<i32>Math.random() * charactersLength)
-    );
-  }
-  return result;
+    var result: String = "";
+    var characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    var charactersLength = characters.length;
+    for (var i = 0; i < length; i++) {
+        result += characters.charAt(<i32>Math.floor(<i32>Math.random() * charactersLength));
+    }
+    return result;
 }
 
-export function updateMatch(id: string, state: MatchState): bool {
-  logging.log("Updating match: " + id + "State: " + state.toString());
-  const finishedMatchLength = finishedMatch.length;
-  const runningMatchLength = runningMatch.length;
-  let match: Match | null;
-  let result: bool = true;
-  switch (state) {
-    case MatchState.RUNNING:
-        match = waitingMatch.getSome(id);
-        if (match) {
-            match.state = MatchState.RUNNING;
-            runningMatch.set(id, match);
-            waitingMatch.delete(id);
-        }
-        break;
-    case MatchState.FINISHED:
-        match = runningMatch.getSome(id);
-        if (match) {
-            match.state = MatchState.FINISHED;
-            finishedMatch.set(id, match);
-            runningMatch.delete(id);
-        }
-        break;
-    default: 
-        assert(!state, "Invalid State!");
-        result = false;
-        break;
-  }
-  return result;
+export function updateMatch(id: string, state: MatchState, result: MatchResult, winner: AccountId): bool {
+    logging.log("Updating match: " + id + "State: " + state.toString());
+    const finishedMatchLength = finishedMatch.length;
+    const runningMatchLength = runningMatch.length;
+    let match: Match | null;
+    let ret: bool = true;
+    switch (state) {
+        case MatchState.RUNNING:
+            match = waitingMatch.getSome(id);
+            if (match) {
+                match.state = MatchState.RUNNING;
+                runningMatch.set(id, match);
+                waitingMatch.delete(id);
+            }
+            break;
+        case MatchState.FINISHED:
+            match = runningMatch.getSome(id);
+            if (match) {
+                match.state = MatchState.FINISHED;
+                finishedMatch.set(id, match);
+                runningMatch.delete(id);
+            }
+            break;
+        default:
+            assert(!state, "Invalid State!");
+            ret = false;
+            break;
+    }
+    return ret;
 }
