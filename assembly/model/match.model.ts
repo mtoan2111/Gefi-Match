@@ -1,11 +1,6 @@
-<<<<<<< HEAD
-import { Context, u128 } from "near-sdk-as";
 import { FinishedMatchStorage, RunningMatchStorage, WaitingMatchStorage } from "../storage/match.storage";
 import { MatchHistory, MatchResult } from "./history.model";
-=======
 import { base58, Context, u128, util } from "near-sdk-as";
-import { WaitingMatchStorage } from "../storage/match.storage";
->>>>>>> develop
 import { AccountId } from "./user.model";
 
 export enum MatchState {

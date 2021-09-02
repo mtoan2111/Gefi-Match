@@ -2,9 +2,8 @@ import { Context, logging, util, base58, u128, PersistentUnorderedMap, Persisten
 import { Match, MatchMode, MatchState, WaitingMatch } from "../model/match.model";
 import { AccountId, User } from "../model/user.model";
 import { MatchResult, MatchHistory } from "../model/history.model";
-import { FEE_PERCENT } from "../model/fee.model";
 import { UserStorage } from "../storage/user.storage";
-import { FinishedMatchStorage, RunningMatchStorage, WaitingMatchStorage } from "../storage/match.storage";
+import { RunningMatchStorage, WaitingMatchStorage } from "../storage/match.storage";
 import { UserHistoryStorage } from "../storage/history.storage";
 import { ErrorResponse } from "../helper/response.helper";
 
@@ -16,122 +15,58 @@ import { ErrorResponse } from "../helper/response.helper";
 
 export function createMatch(mode: MatchMode, bet: u128): String {
     const user: User = UserStorage.get(Context.sender);
-
     const userBalance = user.subBalance(bet);
     if (userBalance == null) {
         return ErrorResponse("0000");
     }
-
     user.save();
-
     let match = WaitingMatch.create(bet, mode);
     match.save();
-
     logging.log("createMatch from: " + Context.sender + " bet: " + Context.attachedDeposit.toString());
-
     return match.id;
 }
 
-export function cancelMatch(id: string): bool {
+export function cancelMatch(id: string): String {
     if (!WaitingMatchStorage.contains(id)) {
-        return false; // Match not found
+        return ErrorResponse("Match not found");
     }
     let cMatch: Match = WaitingMatchStorage.get(id);
     if (cMatch.state !== MatchState.WAITING) {
-        return false; // Can not cancel due to this match is not in Waiting state
+        return ErrorResponse("Can not cancel due to this match is not in Waiting state");
     }
     // Return token for Owner
     let owner: User = UserStorage.get(cMatch.owner);
     owner.cashBackToken(cMatch.bet);
     // Remove Canceled Match
     WaitingMatchStorage.delete(id);
-    return true;
+    return cMatch.id;
 }
 
-/**
- * Update Match state and information.
- * @param id
- * Match id
- * @param state
- * Match state, 0: Waiting, 1: Running, 2: Finished, 3: Canceled
- * @param result
- * Optional, default = 0 if Match state = 0 (Waiting) or 1 (Running)
- * This match result, 0: Win, 1: Lose, 2: Tie
- * @param winner
- * Optional, default = '' if Match Result = 2 (Tie)
- * AccountId of winner in this match.
- */
-
-export function finishMatch(id: string, result: MatchResult, winner: AccountId): bool {
-    let match: Match | null;
-    let ret: bool = true;
+export function finishMatch(id: string, result: MatchResult, winner: AccountId = ''): String {
     let fMatch = RunningMatchStorage.get(id);
     // Widraw token for players
     let owner: User = UserStorage.get(fMatch.owner);
     let competitor: User = UserStorage.get(fMatch.competitor);
-
+    if(UserStorage.contains(winner)) {
+        if (owner.id === winner) {
+            owner.endGame(MatchResult.WIN, fMatch.bet);
+            competitor.endGame(MatchResult.LOSE, fMatch.bet);
+        }
+        else if (competitor.id === winner) {
+            competitor.endGame(MatchResult.WIN, fMatch.bet);
+            owner.endGame(MatchResult.LOSE, fMatch.bet);
+        }
+    }
+    else if (result === MatchResult.TIE) {
+        competitor.endGame(MatchResult.TIE, fMatch.bet);
+        owner.endGame(MatchResult.TIE, fMatch.bet);
+    }
+    else {
+        return ErrorResponse("Wrong Match Result ");
+    }
     // Finish Match
     fMatch.finish();
-
-    switch (state) {
-        case MatchState.FINISHED:
-            match = RunningMatchStorage.get(id);
-            if (match) {
-                logging.log("Match Finished!");
-                match.state = MatchState.FINISHED;
-                FinishedMatchStorage.set(id, match);
-                RunningMatchStorage.delete(id);
-                // Perform Finish process
-                // The result is Win or Lose
-                let fMatch: Match = FinishedMatchStorage.get(id);
-                if (result === MatchResult.TIE) {
-                    // Return token for all competitor
-                    // Return token for Owner
-                    logging.log("MatchResult: TIE");
-                    let owner: User = UserStorage.get(fMatch.owner);
-                    owner.token = withDrawToken(owner.token, fMatch.bet);
-                    logging.log("New Owner Token: " + owner.token.toString());
-                    UserStorage.set(owner.id, owner);
-                    // Return token for Competitor
-                    let competitor: User = UserStorage.get(fMatch.competitor);
-                    competitor.token = withDrawToken(competitor.token, fMatch.bet);
-                    logging.log("New Competitor Token: " + competitor.token.toString());
-                    UserStorage.set(competitor.id, competitor);
-                    // historyUpdateUser(fMatch.owner, new History(fMatch.competitor, fMatch.mode, u128.from(fMatch.bet), MatchResult.TIE));
-                    // historyUpdateUser(fMatch.competitor, new History(fMatch.owner, fMatch.mode, u128.from(fMatch.bet), MatchResult.TIE));
-                } else {
-                    // assert(users.contains(winner), "User not found. Could not update the match");
-                    logging.log("MatchResult: " + result.toString());
-                    let bet: u128 = FinishedMatchStorage.get(id).bet;
-                    // Add token for winner
-                    let user: User = UserStorage.get(winner);
-                    // user.token = user.token + bet*2*(1-FEE_PERCENT)
-                    user.token = withDrawToken(user.token, u128.mul(bet, u128.from(2)));
-                    logging.log("New Winner Token: " + user.token.toString());
-                    UserStorage.set(winner, user);
-                    // let ownerHis: History = new History(fMatch.competitor, fMatch.mode, bet, MatchResult.WIN);
-                    // let competitorHis: History = new History(fMatch.owner, fMatch.mode, bet, MatchResult.LOSE);
-
-                    _historyUpdateUser(fMatch.competitor, fMatch.owner, fMatch.mode, u128.from(fMatch.bet), MatchResult.LOSE);
-                    _historyUpdateUser(fMatch.competitor, fMatch.owner, fMatch.mode, u128.from(fMatch.bet), MatchResult.LOSE);
-
-                    // historyUpdateUser(fMatch.owner, fMatch.competitor, fMatch.mode, u128.from(fMatch.bet), MatchResult.WIN);
-                    // if (winner === fMatch.owner) {
-                    //   historyUpdateUser(fMatch.owner, new History(fMatch.competitor, fMatch.mode, u128.from(fMatch.bet), MatchResult.WIN));
-                    //   historyUpdateUser(fMatch.competitor, new History(fMatch.owner, fMatch.mode, u128.from(fMatch.bet), MatchResult.LOSE));
-                    // } else {
-                    //   historyUpdateUser(fMatch.owner, new History(fMatch.competitor, fMatch.mode, u128.from(fMatch.bet), MatchResult.LOSE));
-                    //   historyUpdateUser(fMatch.competitor, new History(fMatch.owner, fMatch.mode, u128.from(fMatch.bet), MatchResult.WIN));
-                    // }
-                }
-            }
-            break;
-        default:
-            assert(!state, "Invalid State!");
-            ret = false;
-            break;
-    }
-    return ret;
+    return fMatch.id;
 }
 
 /**
@@ -144,41 +79,41 @@ export function finishMatch(id: string, result: MatchResult, winner: AccountId):
  * Trừ tiền ngay của người tham gia
  *
  */
-export function joinMatch(id: string): bool {
+export function joinMatch(id: string): String {
     // Check if user available
     let accountId: AccountId = Context.sender;
     if (!UserStorage.contains(accountId)) {
-        return false; // User not found. Could not create the match
+        return ErrorResponse("User not found. Could not create the match");
     }
     let user: User = UserStorage.get(accountId);
     // Check if match available
     if (!WaitingMatchStorage.contains(id)) {
-        return false; //Current Match is not available
+        return ErrorResponse("Current Match is not available");
     }
     let jMatch: Match = WaitingMatchStorage.get(id);
     // Check if user's balance is enough
-    logging.log("token: " + user.token.toString());
+    logging.log("token: " + user.getBalance().toString());
     logging.log("bet: " + jMatch.bet.toString());
-    if (!u128.ge(user.token, jMatch.bet)) {
-        return false; // Your balance is not enough!
+    if (!u128.ge(user.getBalance(), jMatch.bet)) {
+        return ErrorResponse("Your balance is not enough! ");
     }
     jMatch.join(accountId);
     // Tru tien
     user.subToken(jMatch.bet);
-    return true;
+    return jMatch.id;
 }
 
-export function startMatch(id: string): bool {
+export function startMatch(id: string): String {
     if (!WaitingMatchStorage.contains(id)) {
-        return false; // Match not found in Waiting Hall
+        return ErrorResponse("Match not found in Waiting Hall");
     }
     let sMatch: Match = WaitingMatchStorage.get(id);
     if (!sMatch.competitor) {
-        return false; // No competitor found
+        return ErrorResponse("No competitor found");
     }
     // Change Match State
     sMatch.start();
-    return true;
+    return sMatch.id;
 }
 
 /**
