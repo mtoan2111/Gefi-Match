@@ -69,7 +69,7 @@ export class WaitingMatch extends Match {
         return new WaitingMatch(matchId, bet, mode);
     }
 
-    save() {
+    save(): void {
         WaitingMatchStorage.set(this.id, this);
     }
 }

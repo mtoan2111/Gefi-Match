@@ -17,10 +17,8 @@ export enum SwapMode {
 @nearBindgen
 export class MatchHistory {
     created: u64;
-    bet: u128;
-    constructor(public competitor: AccountId, public mode: MatchMode, public result: MatchResult) {
+    constructor(public competitor: AccountId, public mode: MatchMode, public result: MatchResult, public bet: u128) {
         this.created = Context.blockTimestamp;
-        this.bet = u128.Zero;
     }
 }
 
@@ -31,7 +29,7 @@ export class SwapHistory {
         this.created = Context.blockTimestamp;
     }
 
-    save() {
+    save(): void {
         const swapHistorys = SwapHistoryStorage.get(Context.sender);
         swapHistorys.add(this);
         SwapHistoryStorage.set(Context.sender, swapHistorys);

@@ -36,35 +36,48 @@ export function cancelMatch(id: string): String {
     }
     // Return token for Owner
     let owner: User = UserStorage.get(cMatch.owner);
-    owner.cashBackToken(cMatch.bet);
+    owner.cashBack(cMatch.bet);
     // Remove Canceled Match
     WaitingMatchStorage.delete(id);
     return cMatch.id;
 }
 
-export function finishMatch(id: string, result: MatchResult, winner: AccountId = ''): String {
+export function finishMatch(id: string, result: MatchResult, winner: AccountId = ""): String {
     let fMatch = RunningMatchStorage.get(id);
-    // Widraw token for players
+
+    if (fMatch == null) {
+        return ErrorResponse("0004");
+    }
+
     let owner: User = UserStorage.get(fMatch.owner);
     let competitor: User = UserStorage.get(fMatch.competitor);
-    if(UserStorage.contains(winner)) {
-        if (owner.id === winner) {
-            owner.endGame(MatchResult.WIN, fMatch.bet);
-            competitor.endGame(MatchResult.LOSE, fMatch.bet);
-        }
-        else if (competitor.id === winner) {
-            competitor.endGame(MatchResult.WIN, fMatch.bet);
-            owner.endGame(MatchResult.LOSE, fMatch.bet);
-        }
+
+    switch (result) {
+        case MatchResult.TIE:
+            competitor.endGame(MatchResult.TIE, fMatch.bet, fMatch);
+            owner.endGame(MatchResult.TIE, fMatch.bet, fMatch);
+            break;
+        case MatchResult.LOSE:
+        case MatchResult.WIN:
+            if (UserStorage.contains(winner)) {
+                switch (winner) {
+                    case owner.id:
+                        owner.endGame(MatchResult.WIN, fMatch.bet, fMatch);
+                        competitor.endGame(MatchResult.LOSE, fMatch.bet, fMatch);
+                        break;
+                    case competitor.id:
+                        competitor.endGame(MatchResult.WIN, fMatch.bet, fMatch);
+                        owner.endGame(MatchResult.LOSE, fMatch.bet, fMatch);
+                        break;
+                    default:
+                        return ErrorResponse("Wrong Match Result ");
+                }
+            }
+            break;
+        default:
+            return ErrorResponse("Wrong Match Result ");
     }
-    else if (result === MatchResult.TIE) {
-        competitor.endGame(MatchResult.TIE, fMatch.bet);
-        owner.endGame(MatchResult.TIE, fMatch.bet);
-    }
-    else {
-        return ErrorResponse("Wrong Match Result ");
-    }
-    // Finish Match
+
     fMatch.finish();
     return fMatch.id;
 }
@@ -137,8 +150,8 @@ function _makeid(length: i32): String {
     return result;
 }
 
-function _historyUpdateUser(id: AccountId, competitor: AccountId, mode: MatchMode, bet: u128, result: MatchResult): void {
-    let usrHistory: MatchHistory = new MatchHistory(competitor, mode, result);
-    let userHis = new PersistentSet<MatchHistory>(id.toString());
-    UserHistoryStorage.set(id, userHis);
-}
+// function _historyUpdateUser(id: AccountId, competitor: AccountId, mode: MatchMode, bet: u128, result: MatchResult): void {
+//     let usrHistory: MatchHistory = new MatchHistory(competitor, mode, result);
+//     let userHis = new PersistentSet<MatchHistory>(id.toString());
+//     UserHistoryStorage.set(id, userHis);
+// }

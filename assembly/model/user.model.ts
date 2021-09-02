@@ -1,6 +1,8 @@
-import { Context, u128 } from "near-sdk-as";
+import { Context, PersistentSet, u128 } from "near-sdk-as";
+import { UserHistoryStorage } from "../storage/history.storage";
 import { UserStorage } from "../storage/user.storage";
-import { MatchResult } from "./history.model";
+import { MatchHistory, MatchResult } from "./history.model";
+import { Match, MatchMode } from "./match.model";
 
 export enum UserRank {
     CHICKEN,
@@ -17,6 +19,7 @@ export class User {
     lose: u64;
     tie: u64;
     rank: UserRank;
+    private userHistory: PersistentSet<MatchHistory>;
     constructor(public alias: String, public bio: String, public avatar: String) {
         this.token = u128.Zero;
         this.id = Context.sender;
@@ -24,6 +27,7 @@ export class User {
         this.win = 0;
         this.lose = 0;
         this.tie = 0;
+        this.userHistory = new PersistentSet<MatchHistory>(this.id.toString());
     }
 
     getBalance(): u128 {
@@ -52,7 +56,7 @@ export class User {
         this.save();
     }
 
-    endGame(result: MatchResult, bet: u128): void {
+    endGame(result: MatchResult, bet: u128, match: Match): void {
         switch (result) {
             case MatchResult.TIE:
                 this.addBalance(bet);
@@ -66,6 +70,7 @@ export class User {
                 return;
         }
         this.saveMatchResult(result);
+        this.saveMatchHistory(match, result);
         this.save();
     }
 
@@ -76,7 +81,7 @@ export class User {
         return this.token;
     }
 
-    subBalance(amount: u128): u128 | null{ 
+    subBalance(amount: u128): u128 | null {
         let fee: u128 = this.feeCalculate(amount);
         if (u128.le(this.token, amount)) return null;
         this.token = u128.sub(u128.sub(this.token, amount), fee);
@@ -84,7 +89,7 @@ export class User {
         return this.token;
     }
 
-    cashBackToken(amount: u128): u128 {
+    cashBack(amount: u128): u128 {
         this.token = u128.add(this.token, amount);
         this.save();
         return this.token;
@@ -92,5 +97,11 @@ export class User {
 
     feeCalculate(amount: u128): u128 {
         return u128.from(0);
+    }
+
+    saveMatchHistory(match: Match, result: MatchResult): void {
+        let matchHistory = new MatchHistory((match.owner === this.id) ? match.competitor : match.owner, match.mode, result, match.bet);
+        this.userHistory.add(matchHistory)
+        UserHistoryStorage.set(this.id, this.userHistory);
     }
 }
