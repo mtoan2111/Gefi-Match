@@ -31,7 +31,7 @@ export class SwapHistory {
         this.created = Context.blockTimestamp;
     }
 
-    save() {
+    save(): void {
         const swapHistorys = SwapHistoryStorage.get(Context.sender);
         swapHistorys.add(this);
         SwapHistoryStorage.set(Context.sender, swapHistorys);

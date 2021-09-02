@@ -34,13 +34,10 @@ export class User {
         return this.token;
     }
 
-    subBalance(value: u128): u128 | null {
-        if (u128.ge(this.token, value)) {
-            this.token = u128.sub(this.token, value);
-            this.save();
-            return this.token;
-        }
-        return null;
+    subBalance(value: u128): u128 {
+        this.token = u128.sub(this.token, value);
+        this.save();
+        return this.token;
     }
 
     save(): User {

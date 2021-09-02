@@ -6,7 +6,7 @@ import { AccountId } from "./user.model";
 export enum MatchState {
     WAITING,
     RUNNING,
-    FINISHED
+    FINISHED,
 }
 
 export enum MatchMode {
@@ -69,7 +69,7 @@ export class WaitingMatch extends Match {
         return new WaitingMatch(matchId, bet, mode);
     }
 
-    save() {
+    save(): void {
         WaitingMatchStorage.set(this.id, this);
     }
 }
