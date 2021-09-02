@@ -1,6 +1,7 @@
 import { Context, u128 } from "near-sdk-as";
 import { AccountId } from "./user.model";
 import { MatchMode } from "./match.model";
+import { SwapHistoryStorage } from "../storage/history.storage";
 
 export enum MatchResult {
     WIN,
@@ -9,7 +10,7 @@ export enum MatchResult {
 }
 
 export enum SwapMode {
-    TOPUP,
+    DEPOSIT,
     WITHDRAW,
 }
 
@@ -26,7 +27,13 @@ export class MatchHistory {
 @nearBindgen
 export class SwapHistory {
     created: u64;
-    constructor(public mode: SwapMode, public value: u32) {
+    constructor(public mode: SwapMode, public value: u128) {
         this.created = Context.blockTimestamp;
+    }
+
+    save() {
+        const swapHistorys = SwapHistoryStorage.get(Context.sender);
+        swapHistorys.add(this);
+        SwapHistoryStorage.set(Context.sender, swapHistorys);
     }
 }

@@ -1,11 +1,12 @@
 import { Context, logging, util, base58, u128, PersistentUnorderedMap, PersistentSet } from "near-sdk-as";
-import { Match, MatchMode, MatchState } from "../model/match.model";
+import { Match, MatchMode, MatchState, WaitingMatch } from "../model/match.model";
 import { AccountId, User } from "../model/user.model";
 import { MatchResult, MatchHistory } from "../model/history.model";
 import { FEE_PERCENT } from "../model/fee.model";
 import { UserStorage } from "../storage/user.storage";
 import { FinishedMatchStorage, RunningMatchStorage, WaitingMatchStorage } from "../storage/match.storage";
 import { UserHistoryStorage } from "../storage/history.storage";
+import { ErrorResponse } from "../helper/response.helper";
 
 // let idGenerated = new PersistentSet<String>("i")
 
@@ -13,36 +14,22 @@ import { UserHistoryStorage } from "../storage/history.storage";
  * Change Function
  */
 
-/**
- *
- * @param state
- * State of match. See MatchState enum
- * @param mode
- * Mode of match. See MatchMode enum
- * @returns
- * id of match
- */
 export function createMatch(mode: MatchMode, bet: u128): String {
-    let matchId: String = "";
     const user: User = UserStorage.get(Context.sender);
-    logging.log("token: " + user.token.toString());
-    logging.log("bet: " + bet.toString());
-    assert(u128.ge(user.token, bet), "Your balance is not enough!");
-    // Sub user token
-    user.token = u128.sub(user.token, bet);
-    user.subToken(bet);
-    while (matchId == "") {
-        const idTmp = Context.sender + Context.blockTimestamp.toString();
-        const idHash = base58.encode(util.stringToBytes(idTmp));
-        if (!WaitingMatchStorage.contains(idHash)) {
-            matchId = idHash;
-        }
+
+    const userBalance = user.subBalance(bet);
+    if (userBalance == null) {
+        return ErrorResponse("0000");
     }
+
+    user.save();
+
+    let match = WaitingMatch.create(bet, mode);
+    match.save();
 
     logging.log("createMatch from: " + Context.sender + " bet: " + Context.attachedDeposit.toString());
 
-    WaitingMatchStorage.set(matchId, new Match(matchId, bet, mode));
-    return matchId;
+    return match.id;
 }
 
 export function cancelMatch(id: string): bool {
