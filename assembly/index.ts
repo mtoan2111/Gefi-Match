@@ -20,8 +20,8 @@ export function updateMatch(id: string, state: MatchState, result: MatchResult, 
     return match.updateMatch(id, state, result, winner);
 }
 
-export function joinMatch(id: string, accountId: AccountId): bool {
-    return match.joinMatch(id, accountId);
+export function joinMatch(id: string): bool {
+    return match.joinMatch(id);
 }
 
 export function getUsers(): User[] {

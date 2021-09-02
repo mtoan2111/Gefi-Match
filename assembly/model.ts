@@ -60,7 +60,7 @@ export class User {
         this.token = u128.Zero;
         this.id = Context.sender;
         this.rank = UserRank.CHICKEN;
-    }
+    }    
 }
 
 @nearBindgen
@@ -76,5 +76,11 @@ export class SwapHistory {
     created: u64;
     constructor(public mode: SwapMode, public value: u32) {
         this.created = Context.blockTimestamp;
+    }
+}
+
+@nearBindgen
+export class Token {
+    constructor() {
     }
 }
