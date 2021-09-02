@@ -20,7 +20,7 @@ import {
   FEE_PERCENT,
   History,
 } from "./model";
-import { createUser, users, withDraw, userHistories } from "./user";
+import { createUser, users, withDraw, userHistories } from "./controller/user.controller";
 
 let waitingMatch = new PersistentUnorderedMap<String, Match>("w");
 let runningMatch = new PersistentUnorderedMap<String, Match>("r");
@@ -85,11 +85,6 @@ export function createMatch(mode: MatchMode, bet: u128): String {
  * Optional, default = '' if Match Result = 2 (Tie)
  * AccountId of winner in this match.
  */
-
-export function updateMatch(id: string, state: MatchState): void {
-   
- }
-
 export function updateMatch(id: string, state: MatchState, result: MatchResult = 0, winner: AccountId = ""): bool {
   logging.log("Updating match: " + id + " State: " + state.toString());
   let match: Match | null;

@@ -1,7 +1,8 @@
-import * as match from "./match";
-import * as user from "./user";
-import { AccountId, Match, MatchMode, MatchResult, MatchState } from "./model";
-import { User } from "./model";
+import * as match from "./controller/match.controller";
+import * as user from "./controller/user.controller";
+import { Match, MatchMode, MatchState } from "./model/match.model";
+import { User, AccountId } from "./model/user.model";
+import { MatchResult } from "./model/history.model";
 import { u128 } from "near-sdk-as";
 
 export function createMatch(mode: MatchMode, bet: u128): String {
@@ -16,12 +17,21 @@ export function getMatch(): Match[] {
     return match.getMatch();
 }
 
-export function updateMatch(id: string, state: MatchState, result: MatchResult, winner: AccountId): bool {
-    return match.updateMatch(id, state, result, winner);
+export function finishMatch(id: string, state: MatchState, result: MatchResult, winner: AccountId): bool {
+    return match.finishMatch(id, result, winner);
 }
 
 export function joinMatch(id: string): bool {
     return match.joinMatch(id);
+}
+
+export function startMatch(id: string): bool {
+    return match.startMatch(id);
+}
+
+
+export function cancelMatch(id: string): bool {
+    return match.cancelMatch(id);
 }
 
 export function getUsers(): User[] {
