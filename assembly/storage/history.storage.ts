@@ -18,8 +18,11 @@ export class UserHistoryStorage {
 
 @nearBindgen
 export class SwapHistoryStorage {
-    static get(id: AccountId): SwapHistory[] {
-        return swapHistories.getSome(id).values();
+    static get(id: AccountId): PersistentSet<SwapHistory> {
+        if (swapHistories.contains(id)) {
+            return swapHistories.getSome(id);
+        }
+        return new PersistentSet<SwapHistory>("swh");
     }
 
     static set(id: AccountId, value: PersistentSet<SwapHistory>): void {
