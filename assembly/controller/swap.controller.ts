@@ -2,9 +2,10 @@ import { Context, ContractPromise, ContractPromiseBatch, u128 } from "near-sdk-a
 import { ErrorResponse } from "../helper/response.helper";
 import { GeFiInversion, GeFiTransformer } from "../helper/transform.helper";
 import { SwapHistory, SwapMode } from "../model/history.model";
+import { User } from "../model/user.model";
 import { UserStorage } from "../storage/user.storage";
 
-export function deposit() {
+export function deposit(): User {
     const deposit = Context.attachedDeposit;
     const earnerToken = GeFiTransformer(deposit);
     let user = UserStorage.get(Context.sender);
@@ -14,15 +15,15 @@ export function deposit() {
 
     const swpHistory = new SwapHistory(SwapMode.DEPOSIT, earnerToken);
     swpHistory.save();
-    
+
     return user;
 }
 
-export function withDraw(value: u128): u128 | String {
+export function withDraw(value: u128): u128 | null {
     let user = UserStorage.get(Context.sender);
     const curBalance = user.getBalance();
     if (u128.lt(curBalance, value)) {
-        return ErrorResponse("0002");
+        return null;
     }
 
     const yoctoNearWithDraw = GeFiInversion(value);

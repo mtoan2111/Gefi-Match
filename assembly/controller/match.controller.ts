@@ -15,10 +15,7 @@ import { ErrorResponse } from "../helper/response.helper";
 
 export function createMatch(mode: MatchMode, bet: u128): String {
     const user: User = UserStorage.get(Context.sender);
-    const userBalance = user.subBalance(bet);
-    if (userBalance == null) {
-        return ErrorResponse("0000");
-    }
+    user.subBalance(bet);
     user.save();
     let match = WaitingMatch.create(bet, mode);
     match.save();
@@ -59,21 +56,17 @@ export function finishMatch(id: string, result: MatchResult, winner: AccountId =
             break;
         case MatchResult.LOSE:
         case MatchResult.WIN:
-            if (UserStorage.contains(winner)) {
-                switch (winner) {
-                    case owner.id:
-                        owner.endGame(MatchResult.WIN, fMatch.bet);
-                        competitor.endGame(MatchResult.LOSE, fMatch.bet);
-                        break;
-                    case competitor.id:
-                        competitor.endGame(MatchResult.WIN, fMatch.bet);
-                        owner.endGame(MatchResult.LOSE, fMatch.bet);
-                        break;
-                    default:
-                        return ErrorResponse("Wrong Match Result ");
-                }
+            if (owner.id == winner) {
+                owner.endGame(MatchResult.WIN, fMatch.bet);
+                competitor.endGame(MatchResult.LOSE, fMatch.bet);
+                break;
             }
-            break;
+            if (competitor.id == winner) {
+                competitor.endGame(MatchResult.WIN, fMatch.bet);
+                owner.endGame(MatchResult.LOSE, fMatch.bet);
+                break;
+            }
+            return ErrorResponse("Wrong Match Result ");
         default:
             return ErrorResponse("Wrong Match Result ");
     }
