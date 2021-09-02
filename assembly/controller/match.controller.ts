@@ -99,7 +99,7 @@ export function joinMatch(id: string): String {
     }
     jMatch.join(accountId);
     // Tru tien
-    user.subToken(jMatch.bet);
+    user.subBalance(jMatch.bet);
     return jMatch.id;
 }
 

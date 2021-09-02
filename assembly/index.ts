@@ -19,20 +19,20 @@ export function getMatch(): Match[] {
     return match.getMatch();
 }
 
-export function finishMatch(id: string, state: MatchState, result: MatchResult, winner: AccountId): bool {
+export function finishMatch(id: string, result: MatchResult, winner: AccountId): String {
     return match.finishMatch(id, result, winner);
 }
 
-export function joinMatch(id: string): bool {
+export function joinMatch(id: string): String {
     return match.joinMatch(id);
 }
 
-export function startMatch(id: string): bool {
+export function startMatch(id: string): String {
     return match.startMatch(id);
 }
 
 
-export function cancelMatch(id: string): bool {
+export function cancelMatch(id: string): String {
     return match.cancelMatch(id);
 }
 // export function updateMatch(id: string, state: MatchState, result: MatchResult, winner: AccountId): bool {

@@ -15,6 +15,7 @@ export class User {
     private token: u128;
     win: u64;
     lose: u64;
+    tie: u64;
     rank: UserRank;
     constructor(public alias: String, public bio: String, public avatar: String) {
         this.token = u128.Zero;
@@ -22,24 +23,11 @@ export class User {
         this.rank = UserRank.CHICKEN;
         this.win = 0;
         this.lose = 0;
+        this.tie = 0;
     }
 
     getBalance(): u128 {
         return this.token;
-    }
-
-    addBalance(value: u128): u128 {
-        this.token = u128.add(this.token, value);
-        this.save();
-        return this.token;
-    }
-
-    subBalance(value: u128): u128 | null {
-        if (u128.ge(this.token, value)) {
-            this.token = u128.sub(this.token, value);
-            this.save();
-            return this.token;        }
-        return null;
     }
 
     save(): User {
@@ -47,18 +35,16 @@ export class User {
         return this;
     }
 
-    saveMatchResult(): void {}
-
-    endGame(result: MatchResult, bet: u128): void {
+    saveMatchResult(result: MatchResult): void {
         switch (result) {
             case MatchResult.TIE:
-                this.addToken(bet);
+                this.tie = this.tie + 1;
                 break;
             case MatchResult.LOSE:
-                this.subToken(bet);
+                this.lose = this.lose + 1;
                 break;
             case MatchResult.WIN:
-                this.addToken(u128.mul(bet, u128.from(2)));
+                this.win = this.win + 1;
                 break;
             default:
                 return;
@@ -66,14 +52,31 @@ export class User {
         this.save();
     }
 
-    addToken(amount: u128): u128 {
+    endGame(result: MatchResult, bet: u128): void {
+        switch (result) {
+            case MatchResult.TIE:
+                this.addBalance(bet);
+                break;
+            case MatchResult.LOSE:
+                break;
+            case MatchResult.WIN:
+                this.addBalance(u128.mul(bet, u128.from(2)));
+                break;
+            default:
+                return;
+        }
+        this.saveMatchResult(result);
+        this.save();
+    }
+
+    addBalance(amount: u128): u128 {
         let fee: u128 = this.feeCalculate(amount);
         this.token = u128.sub(u128.add(this.token, amount), fee);
         this.save();
         return this.token;
     }
 
-    subToken(amount: u128): u128 | null{ 
+    subBalance(amount: u128): u128 | null{ 
         let fee: u128 = this.feeCalculate(amount);
         if (u128.le(this.token, amount)) return null;
         this.token = u128.sub(u128.sub(this.token, amount), fee);
