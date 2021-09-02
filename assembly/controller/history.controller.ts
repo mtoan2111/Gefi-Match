@@ -8,9 +8,9 @@ export function getMatchHistory(id: AccountId): MatchHistory[] {
     return UserHistoryStorage.get(id);
 }
 
-export function getSwapHistory(id: AccountId): SwapHistory[] | String {
+export function getSwapHistory(id: AccountId): SwapHistory[] | null {
     if (Context.sender != id) {
-        return ErrorResponse("0001");
+        return null;
     }
     return SwapHistoryStorage.get(id).values();
 }

@@ -31,7 +31,6 @@ export function startMatch(id: string): String {
     return match.startMatch(id);
 }
 
-
 export function cancelMatch(id: string): String {
     return match.cancelMatch(id);
 }
@@ -63,6 +62,6 @@ export function deposit(): User {
     return swap.deposit();
 }
 
-export function withDraw(value: u128): u128 | String {
+export function withDraw(value: u128): u128 | null {
     return swap.withDraw(value);
 }

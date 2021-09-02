@@ -6,7 +6,7 @@ import { AccountId } from "./user.model";
 export enum MatchState {
     WAITING,
     RUNNING,
-    FINISHED
+    FINISHED,
 }
 
 export enum MatchMode {
