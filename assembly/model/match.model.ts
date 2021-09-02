@@ -1,4 +1,5 @@
-import { Context, u128 } from "near-sdk-as";
+import { base58, Context, u128, util } from "near-sdk-as";
+import { WaitingMatchStorage } from "../storage/match.storage";
 import { AccountId } from "./user.model";
 
 export enum MatchState {
@@ -37,5 +38,26 @@ export class Match {
         return `{"owner":${this.owner},"competitor":${
             this.competitor
         },"bet":${this.bet.toString()},"state":${this.state.toString()},"created":${this.created.toString()}}`;
+    }
+}
+
+@nearBindgen
+export class WaitingMatch extends Match {
+    static create(bet: u128, mode: MatchMode): WaitingMatch {
+        let matchId: String = "";
+
+        while (matchId == "") {
+            const idTmp = Context.sender + Context.blockTimestamp.toString();
+            const idHash = base58.encode(util.stringToBytes(idTmp));
+            if (!WaitingMatchStorage.contains(idHash)) {
+                matchId = idHash;
+            }
+        }
+
+        return new WaitingMatch(matchId, bet, mode);
+    }
+
+    save() {
+        WaitingMatchStorage.set(this.id, this);
     }
 }

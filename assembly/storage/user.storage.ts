@@ -6,7 +6,10 @@ const users = new PersistentUnorderedMap<AccountId, User>("um");
 
 export class UserStorage {
     static get(id: AccountId): User {
-        return users.getSome(id);
+        if (users.contains(id)) {
+            return users.getSome(id);
+        }
+        return new User(id, "", "");
     }
 
     static set(id: AccountId, value: User): void {
@@ -17,11 +20,14 @@ export class UserStorage {
         return users.values();
     }
 
-    static delete(id: AccountId): void {
-        users.delete(id);
+    static delete(id: AccountId): bool {
+        if (users.contains(id)) {
+            users.delete(id);
+            return true;
+        }
+        return false;
     }
 }
-
 
 // interface Storage<T> {
 //     get(id: AccountId): T;
