@@ -1,12 +1,12 @@
+import { FinishedMatchStorage, RunningMatchStorage, WaitingMatchStorage } from "../storage/match.storage";
+import { MatchHistory, MatchResult } from "./history.model";
 import { base58, Context, u128, util } from "near-sdk-as";
-import { WaitingMatchStorage } from "../storage/match.storage";
 import { AccountId } from "./user.model";
 
 export enum MatchState {
     WAITING,
     RUNNING,
-    FINISHED,
-    CANCELED,
+    FINISHED
 }
 
 export enum MatchMode {
@@ -28,11 +28,23 @@ export class Match {
         this.owner = Context.sender;
     }
 
-    join(): void {}
+    join(competitor: AccountId): void {
+        this.competitor = competitor;
+        WaitingMatchStorage.set(this.id, this);
+    }
 
-    start(): void {}
+    start(): void {
+        this.state = MatchState.RUNNING;
+        // Change Match Storage
+        WaitingMatchStorage.delete(this.id);
+        RunningMatchStorage.set(this.id, this);
+    }
 
-    finish(): void {}
+    finish(): void {
+        this.state = MatchState.FINISHED;
+        FinishedMatchStorage.set(this.id, this);
+        RunningMatchStorage.delete(this.id);
+    }
 
     toString(): String {
         return `{"owner":${this.owner},"competitor":${
