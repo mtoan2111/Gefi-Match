@@ -27,6 +27,10 @@ export class UserStorage {
         }
         return false;
     }
+
+    static contains(id: AccountId): bool {
+        return users.contains(id);
+    }
 }
 
 // interface Storage<T> {

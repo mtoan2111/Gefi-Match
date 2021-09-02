@@ -19,6 +19,22 @@ export function getMatch(): Match[] {
     return match.getMatch();
 }
 
+export function finishMatch(id: string, state: MatchState, result: MatchResult, winner: AccountId): bool {
+    return match.finishMatch(id, result, winner);
+}
+
+export function joinMatch(id: string): bool {
+    return match.joinMatch(id);
+}
+
+export function startMatch(id: string): bool {
+    return match.startMatch(id);
+}
+
+
+export function cancelMatch(id: string): bool {
+    return match.cancelMatch(id);
+}
 // export function updateMatch(id: string, state: MatchState, result: MatchResult, winner: AccountId): bool {
 //     return match.updateMatch(id, state, result, winner);
 // }
