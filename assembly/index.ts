@@ -1,7 +1,8 @@
-import * as match from "./match";
-import * as user from "./user";
-import { AccountId, Match, MatchMode, MatchResult, MatchState } from "./model";
-import { User } from "./model";
+import * as match from "./controller/match.controller";
+import * as user from "./controller/user.controller";
+import { Match, MatchMode, MatchState } from "./model/match.model";
+import { User, AccountId } from "./model/user.model";
+import { MatchResult } from "./model/history.model";
 import { u128 } from "near-sdk-as";
 
 export function createMatch(mode: MatchMode, bet: u128): String {
@@ -40,4 +41,6 @@ export function topUp(): User {
     return user.topUp();
 }
 
-export function widthDraw(value: u128) {}
+export function widthDraw(value: u128): bool {
+    return user.withDraw();
+}
