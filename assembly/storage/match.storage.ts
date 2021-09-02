@@ -28,8 +28,11 @@ export class WaitingMatchStorage {
 }
 
 export class RunningMatchStorage {
-    static get(id: String): Match {
-        return runningMatch.getSome(id);
+    static get(id: String): Match | null {
+        if (runningMatch.contains(id)) {
+            return runningMatch.getSome(id);
+        }
+        return null;
     }
 
     static set(id: String, value: Match): void {

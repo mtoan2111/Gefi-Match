@@ -38,7 +38,8 @@ export class User {
         if (u128.ge(this.token, value)) {
             this.token = u128.sub(this.token, value);
             this.save();
-            return this.token;        }
+            return this.token;
+        }
         return null;
     }
 
@@ -73,7 +74,7 @@ export class User {
         return this.token;
     }
 
-    subToken(amount: u128): u128 | null{ 
+    subToken(amount: u128): u128 | null {
         let fee: u128 = this.feeCalculate(amount);
         if (u128.le(this.token, amount)) return null;
         this.token = u128.sub(u128.sub(this.token, amount), fee);
