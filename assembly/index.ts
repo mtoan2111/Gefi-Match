@@ -15,8 +15,12 @@ export function createUser(alias: string, bio: string, avatar: string): User {
     return user.createUser(alias, bio, avatar);
 }
 
-export function getMatch(): Match[] {
-    return match.getMatch();
+export function getMatchs(): Match[] {
+    return match.getMatchs();
+}
+
+export function getMatchById(id: String): Match | null {
+    return match.getMatch(id);
 }
 
 export function finishMatch(id: string, result: MatchResult, winner: AccountId): String {

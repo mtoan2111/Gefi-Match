@@ -112,6 +112,10 @@ export function startMatch(id: string): String {
  * View function
  */
 
-export function getMatch(): Match[] {
+export function getMatchs(): Match[] {
     return WaitingMatchStorage.gets();
+}
+
+export function getMatch(id: String): Match | null{
+    return WaitingMatchStorage.get(id);
 }
