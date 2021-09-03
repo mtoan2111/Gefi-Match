@@ -46,16 +46,7 @@ export class Match {
         RunningMatchStorage.delete(this.id);
     }
 
-    toString(): String {
-        return `{"owner":${this.owner},"competitor":${
-            this.competitor
-        },"bet":${this.bet.toString()},"state":${this.state.toString()},"created":${this.created.toString()}}`;
-    }
-}
-
-@nearBindgen
-export class WaitingMatch extends Match {
-    static create(bet: u128, mode: MatchMode): WaitingMatch {
+    static create(bet: u128, mode: MatchMode): Match {
         let matchId: String = "";
         while (matchId == "") {
             const idTmp = Context.sender + Context.blockTimestamp.toString();
@@ -64,11 +55,29 @@ export class WaitingMatch extends Match {
                 matchId = idHash;
             }
         }
-        return new WaitingMatch(matchId, bet, mode);
+
+        return new Match(matchId, bet, mode);
     }
 
     save(): void {
-        logging.log("Saved ID: " + this.toString());
-        WaitingMatchStorage.set(this.id, this);
+        switch (this.state) {
+            case MatchState.WAITING:
+                WaitingMatchStorage.set(this.id, this);
+                break;
+            case MatchState.RUNNING:
+                RunningMatchStorage.set(this.id, this);
+                break;
+            case MatchState.FINISHED:
+                FinishedMatchStorage.set(this.id, this);
+                break;
+            default:
+                break;
+        }
+    }
+
+    toString(): String {
+        return `{"owner":${this.owner},"competitor":${
+            this.competitor
+        },"bet":${this.bet.toString()},"state":${this.state.toString()},"created":${this.created.toString()}}`;
     }
 }

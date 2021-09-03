@@ -1,5 +1,4 @@
-import { Context, ContractPromise, ContractPromiseBatch, u128 } from "near-sdk-as";
-import { ErrorResponse } from "../helper/response.helper";
+import { Context, ContractPromiseBatch, u128 } from "near-sdk-as";
 import { GeFiInversion, GeFiTransformer } from "../helper/transform.helper";
 import { SwapHistory, SwapMode } from "../model/history.model";
 import { User } from "../model/user.model";
