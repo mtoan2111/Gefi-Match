@@ -3,7 +3,7 @@ import { Match, MatchMode, MatchState } from "../model/match.model";
 import { AccountId, User } from "../model/user.model";
 import { MatchResult } from "../model/history.model";
 import { UserStorage } from "../storage/user.storage";
-import { RunningMatchStorage, WaitingMatchStorage } from "../storage/match.storage";
+import { FinishedMatchStorage, RunningMatchStorage, WaitingMatchStorage } from "../storage/match.storage";
 import { ErrorResponse } from "../helper/response.helper";
 
 /**
@@ -19,7 +19,7 @@ export function createMatch(mode: MatchMode, bet: u128): String {
     match.save();
 
     logging.log("createMatch from: " + Context.sender + " bet: " + Context.attachedDeposit.toString());
-    
+
     return match.id;
 }
 
@@ -113,6 +113,26 @@ export function startMatch(id: string): String {
  * View function
  */
 
-export function getMatch(): Match[] {
+export function getMatch(id: string): Match[] {
+    if (id != "") {
+        let ret = new Array<Match>(1);
+        let match: Match | null;
+        match = WaitingMatchStorage.get(id);
+        if (match != null) {
+            ret[0] = match;
+            return ret;
+        }
+        match = RunningMatchStorage.get(id);
+        if (match != null) {
+            ret[0] = match;
+            return ret;
+        }
+        match = FinishedMatchStorage.get(id);
+        if (match != null) {
+            ret[0] = match;
+            return ret;
+        }
+        return ret;
+    }
     return WaitingMatchStorage.gets();
 }
