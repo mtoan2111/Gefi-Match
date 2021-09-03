@@ -17,9 +17,7 @@ export function createMatch(mode: MatchMode, bet: u128): String {
 
     let match = Match.create(bet, mode);
     match.save();
-
-    logging.log("createMatch from: " + Context.sender + " bet: " + Context.attachedDeposit.toString());
-
+    logging.log("createMatch from: " + Context.sender + " bet: " + match.toString());
     return match.id;
 }
 
@@ -34,7 +32,8 @@ export function cancelMatch(id: string): String {
     }
 
     let owner: User = UserStorage.get(cMatch.owner);
-    owner.cashBackToken(cMatch.bet);
+    owner.cashBack(cMatch.bet);
+    // Remove Canceled Match
     WaitingMatchStorage.delete(id);
     return cMatch.id;
 }
@@ -51,19 +50,19 @@ export function finishMatch(id: string, result: MatchResult, winner: AccountId =
 
     switch (result) {
         case MatchResult.TIE:
-            competitor.endGame(MatchResult.TIE, fMatch.bet);
-            owner.endGame(MatchResult.TIE, fMatch.bet);
+            competitor.endGame(MatchResult.TIE, fMatch.bet, fMatch);
+            owner.endGame(MatchResult.TIE, fMatch.bet, fMatch);
             break;
         case MatchResult.LOSE:
         case MatchResult.WIN:
             if (owner.id == winner) {
-                owner.endGame(MatchResult.WIN, fMatch.bet);
-                competitor.endGame(MatchResult.LOSE, fMatch.bet);
+                owner.endGame(MatchResult.WIN, fMatch.bet, fMatch);
+                competitor.endGame(MatchResult.LOSE, fMatch.bet, fMatch);
                 break;
             }
             if (competitor.id == winner) {
-                competitor.endGame(MatchResult.WIN, fMatch.bet);
-                owner.endGame(MatchResult.LOSE, fMatch.bet);
+                competitor.endGame(MatchResult.WIN, fMatch.bet, fMatch);
+                owner.endGame(MatchResult.LOSE, fMatch.bet, fMatch);
                 break;
             }
             return ErrorResponse("Wrong Match Result ");
@@ -85,7 +84,7 @@ export function joinMatch(id: string): String {
         return ErrorResponse("Current Match is not available");
     }
 
-    let subBalanceResult = user.subToken(wMatch.bet);
+    let subBalanceResult = user.subBalance(wMatch.bet);
     if (u128.eq == null) {
         return ErrorResponse("Your balance is not enough! ");
     }
@@ -113,26 +112,10 @@ export function startMatch(id: string): String {
  * View function
  */
 
-export function getMatch(id: string): Match[] {
-    if (id != "") {
-        let ret = new Array<Match>(1);
-        let match: Match | null;
-        match = WaitingMatchStorage.get(id);
-        if (match != null) {
-            ret[0] = match;
-            return ret;
-        }
-        match = RunningMatchStorage.get(id);
-        if (match != null) {
-            ret[0] = match;
-            return ret;
-        }
-        match = FinishedMatchStorage.get(id);
-        if (match != null) {
-            ret[0] = match;
-            return ret;
-        }
-        return ret;
-    }
+export function getMatchs(): Match[] {
     return WaitingMatchStorage.gets();
+}
+
+export function getMatch(id: String): Match | null{
+    return WaitingMatchStorage.get(id);
 }

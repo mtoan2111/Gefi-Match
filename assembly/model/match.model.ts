@@ -1,5 +1,6 @@
 import { FinishedMatchStorage, RunningMatchStorage, WaitingMatchStorage } from "../storage/match.storage";
-import { base58, Context, u128, util } from "near-sdk-as";
+import { MatchHistory, MatchResult } from "./history.model";
+import { base58, Context, u128, util, logging } from "near-sdk-as";
 import { AccountId } from "./user.model";
 
 export enum MatchState {
@@ -47,7 +48,6 @@ export class Match {
 
     static create(bet: u128, mode: MatchMode): Match {
         let matchId: String = "";
-
         while (matchId == "") {
             const idTmp = Context.sender + Context.blockTimestamp.toString();
             const idHash = base58.encode(util.stringToBytes(idTmp));
