@@ -6,8 +6,11 @@ const runningMatch = new PersistentUnorderedMap<String, Match>("r");
 const finishedMatch = new PersistentUnorderedMap<String, Match>("f");
 
 export class WaitingMatchStorage {
-    static get(id: String): Match {
-        return waitingMatch.getSome(id);
+    static get(id: String): Match | null {
+        if (waitingMatch.contains(id)) {
+            return waitingMatch.getSome(id);
+        }
+        return null;
     }
 
     static set(id: String, value: Match): void {

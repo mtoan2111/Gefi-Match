@@ -1,9 +1,6 @@
-import { Context, logging, PersistentMap, PersistentSet, PersistentUnorderedMap, PersistentVector, u128 } from "near-sdk-as";
-import { NEAR_RATE, NEAR_YOCTO } from "../model/fee.model";
+import { Context, u128 } from "near-sdk-as";
 import { AccountId, User } from "../model/user.model";
-import { MatchHistory } from "../model/history.model";
 import { UserStorage } from "../storage/user.storage";
-import { UserHistoryStorage } from "../storage/history.storage";
 import { GeFiTransformer } from "../helper/transform.helper";
 
 // let userId = new PersistentSet<String>("us");

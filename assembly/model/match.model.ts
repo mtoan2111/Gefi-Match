@@ -1,5 +1,4 @@
 import { FinishedMatchStorage, RunningMatchStorage, WaitingMatchStorage } from "../storage/match.storage";
-import { MatchHistory, MatchResult } from "./history.model";
 import { base58, Context, u128, util } from "near-sdk-as";
 import { AccountId } from "./user.model";
 
@@ -46,16 +45,7 @@ export class Match {
         RunningMatchStorage.delete(this.id);
     }
 
-    toString(): String {
-        return `{"owner":${this.owner},"competitor":${
-            this.competitor
-        },"bet":${this.bet.toString()},"state":${this.state.toString()},"created":${this.created.toString()}}`;
-    }
-}
-
-@nearBindgen
-export class WaitingMatch extends Match {
-    static create(bet: u128, mode: MatchMode): WaitingMatch {
+    static create(bet: u128, mode: MatchMode): Match {
         let matchId: String = "";
 
         while (matchId == "") {
@@ -66,10 +56,28 @@ export class WaitingMatch extends Match {
             }
         }
 
-        return new WaitingMatch(matchId, bet, mode);
+        return new Match(matchId, bet, mode);
     }
 
     save(): void {
-        WaitingMatchStorage.set(this.id, this);
+        switch (this.state) {
+            case MatchState.WAITING:
+                WaitingMatchStorage.set(this.id, this);
+                break;
+            case MatchState.RUNNING:
+                RunningMatchStorage.set(this.id, this);
+                break;
+            case MatchState.FINISHED:
+                FinishedMatchStorage.set(this.id, this);
+                break;
+            default:
+                break;
+        }
+    }
+
+    toString(): String {
+        return `{"owner":${this.owner},"competitor":${
+            this.competitor
+        },"bet":${this.bet.toString()},"state":${this.state.toString()},"created":${this.created.toString()}}`;
     }
 }

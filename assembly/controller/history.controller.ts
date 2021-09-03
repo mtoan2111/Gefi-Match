@@ -1,5 +1,4 @@
 import { Context } from "near-sdk-as";
-import { ErrorResponse } from "../helper/response.helper";
 import { MatchHistory, SwapHistory } from "../model/history.model";
 import { AccountId } from "../model/user.model";
 import { SwapHistoryStorage, UserHistoryStorage } from "../storage/history.storage";
