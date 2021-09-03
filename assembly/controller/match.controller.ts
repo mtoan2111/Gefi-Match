@@ -14,9 +14,12 @@ export function createMatch(mode: MatchMode, bet: u128): String {
     const user: User = UserStorage.get(Context.sender);
     user.subBalance(bet);
     user.save();
+
     let match = Match.create(bet, mode);
     match.save();
+
     logging.log("createMatch from: " + Context.sender + " bet: " + Context.attachedDeposit.toString());
+    
     return match.id;
 }
 
