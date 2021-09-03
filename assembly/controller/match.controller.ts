@@ -19,7 +19,7 @@ export function createMatch(mode: MatchMode, bet: u128): String {
     user.save();
     let match = WaitingMatch.create(bet, mode);
     match.save();
-    logging.log("createMatch from: " + Context.sender + " bet: " + Context.attachedDeposit.toString());
+    logging.log("createMatch from: " + Context.sender + " bet: " + match.toString());
     return match.id;
 }
 
@@ -99,7 +99,7 @@ export function joinMatch(id: string): String {
     let jMatch: Match = WaitingMatchStorage.get(id);
     // Check if user's balance is enough
     logging.log("token: " + user.getBalance().toString());
-    logging.log("bet: " + jMatch.bet.toString());
+    logging.log("bet: " + jMatch.toString());
     if (!u128.ge(user.getBalance(), jMatch.bet)) {
         return ErrorResponse("Your balance is not enough! ");
     }
@@ -113,7 +113,7 @@ export function startMatch(id: string): String {
     if (!WaitingMatchStorage.contains(id)) {
         return ErrorResponse("Match not found in Waiting Hall");
     }
-    let sMatch: Match = WaitingMatchStorage.get(id);
+    let sMatch: Match= WaitingMatchStorage.get(id);
     if (!sMatch.competitor) {
         return ErrorResponse("No competitor found");
     }

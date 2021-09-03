@@ -1,6 +1,6 @@
 import { FinishedMatchStorage, RunningMatchStorage, WaitingMatchStorage } from "../storage/match.storage";
 import { MatchHistory, MatchResult } from "./history.model";
-import { base58, Context, u128, util } from "near-sdk-as";
+import { base58, Context, u128, util, logging } from "near-sdk-as";
 import { AccountId } from "./user.model";
 
 export enum MatchState {
@@ -57,7 +57,6 @@ export class Match {
 export class WaitingMatch extends Match {
     static create(bet: u128, mode: MatchMode): WaitingMatch {
         let matchId: String = "";
-
         while (matchId == "") {
             const idTmp = Context.sender + Context.blockTimestamp.toString();
             const idHash = base58.encode(util.stringToBytes(idTmp));
@@ -65,11 +64,11 @@ export class WaitingMatch extends Match {
                 matchId = idHash;
             }
         }
-
         return new WaitingMatch(matchId, bet, mode);
     }
 
     save(): void {
+        logging.log("Saved ID: " + this.toString());
         WaitingMatchStorage.set(this.id, this);
     }
 }
