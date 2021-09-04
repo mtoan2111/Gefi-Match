@@ -58,7 +58,7 @@ export function getMatchHistory(id: AccountId): MatchHistory[] {
     return history.getMatchHistory(id);
 }
 
-export function deleteUser(id: AccountId): bool {
+export function deleteUser(id: AccountId): String {
     return user.deleteUser(id);
 }
 

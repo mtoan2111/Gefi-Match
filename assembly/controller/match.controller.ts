@@ -24,11 +24,11 @@ export function createMatch(mode: MatchMode, bet: u128): String {
 export function cancelMatch(id: string): String {
     let cMatch: Match | null = WaitingMatchStorage.get(id);
     if (cMatch == null) {
-        return ErrorResponse("Match not found");
+        return ErrorResponse("0x0100"); // MATCH_NOT_FOUND
     }
 
     if (cMatch.state !== MatchState.WAITING) {
-        return ErrorResponse("Can not cancel due to this match is not in Waiting state");
+        return ErrorResponse("0x0110"); // MATCH_NOT_WAITING
     }
 
     let owner: User = UserStorage.get(cMatch.owner);
@@ -42,7 +42,7 @@ export function finishMatch(id: string, result: MatchResult, winner: AccountId =
     let fMatch = RunningMatchStorage.get(id);
 
     if (fMatch == null) {
-        return ErrorResponse("0004");
+        return ErrorResponse("0x0100"); // MATCH_NOT_FOUND
     }
 
     let owner: User = UserStorage.get(fMatch.owner);
@@ -65,9 +65,9 @@ export function finishMatch(id: string, result: MatchResult, winner: AccountId =
                 owner.endGame(MatchResult.LOSE, fMatch.bet, fMatch);
                 break;
             }
-            return ErrorResponse("Wrong Match Result ");
+            return ErrorResponse("0x0111"); // WRONG_MATCH_RESULT
         default:
-            return ErrorResponse("Wrong Match Result ");
+            return ErrorResponse("0x0111"); // WRONG_MATCH_RESULT
     }
 
     fMatch.finish();
@@ -81,12 +81,12 @@ export function joinMatch(id: string): String {
 
     let wMatch: Match | null = WaitingMatchStorage.get(id);
     if (wMatch == null) {
-        return ErrorResponse("Current Match is not available");
+        return ErrorResponse("0x0100"); // MATCH_NOT_FOUND
     }
 
     let subBalanceResult = user.subBalance(wMatch.bet);
     if (u128.eq == null) {
-        return ErrorResponse("Your balance is not enough! ");
+        return ErrorResponse("0x0220"); // BALANCE_NOT_ENOUGH
     }
 
     wMatch.join(accountId);
@@ -97,11 +97,11 @@ export function startMatch(id: string): String {
     let sMatch: Match | null = WaitingMatchStorage.get(id);
 
     if (sMatch == null) {
-        return ErrorResponse("Match not found in Waiting Hall");
+        return ErrorResponse("0x0100"); // MATCH_NOT_FOUND
     }
 
     if (sMatch.competitor == null || sMatch.competitor == "") {
-        return ErrorResponse("No competitor found");
+        return ErrorResponse("0x0210"); // NO_COMPETITOR_FOUND
     }
 
     sMatch.start();
