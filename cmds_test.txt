@@ -16,6 +16,7 @@ near call neutrino.testnet joinMatch '{"id":"C1tbALg81eAv864kXLhRtnboYsioa39jJvS
 
 --gas=300000000000000
 
+near call mtoan2193.testnet createUser '{"alias": "ToanNm", "bio":"toan", "avatar": ""}' --accountId mtoan2111.testnet
 near call mtoan2193.testnet createMatch '{"mode": 1, "bet":"1000"}'  --account-id mtoan2111.testnet
 near call mtoan2193.testnet getMatch '{}' --accountId mtoan2111.testnet
 near call mtoan2193.testnet joinMatch '{"id":"qCsqqzSCyFzHgKCED2yfi7NDBDA4p8ioif579rQG3VzZxNY9J", "accountId": "mtoan2193.testnet"}' --accountId mtoan2193.testnet

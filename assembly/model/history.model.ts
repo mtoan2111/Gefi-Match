@@ -1,7 +1,7 @@
 import { Context, u128 } from "near-sdk-as";
 import { AccountId } from "./user.model";
 import { MatchMode } from "./match.model";
-import { SwapHistoryStorage } from "../storage/history.storage";
+import { SwapHistoryStorage, UserHistoryStorage } from "../storage/history.storage";
 
 export enum MatchResult {
     WIN,
@@ -19,6 +19,12 @@ export class MatchHistory {
     created: u64;
     constructor(public competitor: AccountId, public mode: MatchMode, public result: MatchResult, public bet: u128) {
         this.created = Context.blockTimestamp;
+    }
+
+    save(): void {
+        const matchHistory = UserHistoryStorage.get(Context.sender);
+        matchHistory.add(this);
+        UserHistoryStorage.set(Context.sender, matchHistory);
     }
 }
 

@@ -4,7 +4,7 @@ import { AccountId } from "../model/user.model";
 import { SwapHistoryStorage, UserHistoryStorage } from "../storage/history.storage";
 
 export function getMatchHistory(id: AccountId): MatchHistory[] {
-    return UserHistoryStorage.get(id);
+    return UserHistoryStorage.get(id).values();
 }
 
 export function getSwapHistory(id: AccountId): SwapHistory[] | null {

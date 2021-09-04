@@ -19,7 +19,6 @@ export class User {
     lose: u64;
     tie: u64;
     rank: UserRank;
-    private userHistory: PersistentSet<MatchHistory>;
     constructor(public alias: String, public bio: String, public avatar: String) {
         this.token = u128.Zero;
         this.id = Context.sender;
@@ -27,7 +26,6 @@ export class User {
         this.win = 0;
         this.lose = 0;
         this.tie = 0;
-        this.userHistory = new PersistentSet<MatchHistory>(this.id.toString());
     }
 
     getBalance(): u128 {
@@ -102,8 +100,7 @@ export class User {
     }
 
     saveMatchHistory(match: Match, result: MatchResult): void {
-        let matchHistory = new MatchHistory((match.owner === this.id) ? match.competitor : match.owner, match.mode, result, match.bet);
-        this.userHistory.add(matchHistory)
-        UserHistoryStorage.set(this.id, this.userHistory);
+        let matchHistory = new MatchHistory(match.owner == this.id ? match.competitor : match.owner, match.mode, result, match.bet);
+        matchHistory.save();
     }
 }

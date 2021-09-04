@@ -7,8 +7,11 @@ const swapHistories = new PersistentUnorderedMap<string, PersistentSet<SwapHisto
 
 @nearBindgen
 export class UserHistoryStorage {
-    static get(id: string): MatchHistory[] {
-        return userHistories.getSome(id).values();
+    static get(id: string): PersistentSet<MatchHistory> {
+        if (userHistories.contains(id)) {
+            return userHistories.getSome(id);
+        }
+        return new PersistentSet<MatchHistory>("mh");
     }
 
     static set(id: string, value: PersistentSet<MatchHistory>): void {

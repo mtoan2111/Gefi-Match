@@ -3,7 +3,7 @@ import { Match, MatchMode, MatchState } from "../model/match.model";
 import { AccountId, User } from "../model/user.model";
 import { MatchResult } from "../model/history.model";
 import { UserStorage } from "../storage/user.storage";
-import { RunningMatchStorage, WaitingMatchStorage } from "../storage/match.storage";
+import { FinishedMatchStorage, RunningMatchStorage, WaitingMatchStorage } from "../storage/match.storage";
 import { ErrorResponse } from "../helper/response.helper";
 
 /**
@@ -116,6 +116,6 @@ export function getMatchs(): Match[] {
     return WaitingMatchStorage.gets();
 }
 
-export function getMatch(id: String): Match | null{
+export function getMatch(id: String): Match | null {
     return WaitingMatchStorage.get(id);
 }

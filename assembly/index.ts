@@ -19,7 +19,7 @@ export function getMatchs(): Match[] {
     return match.getMatchs();
 }
 
-export function getMatchById(id: String): Match | null {
+export function getMatch(id: String): Match | null {
     return match.getMatch(id);
 }
 
