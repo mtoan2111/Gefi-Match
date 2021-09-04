@@ -116,6 +116,6 @@ export function getMatchs(): Match[] {
     return WaitingMatchStorage.gets();
 }
 
-export function getMatch(id: String): Match | null{
+export function getMatch(id: String): Match | null {
     return WaitingMatchStorage.get(id);
 }

@@ -1,6 +1,5 @@
 {
     "extends": "near-sdk-as/asconfig.json",
-    "entry": "assembly/index.ts",
     "options": {
         "binaryFile": "out/main.wasm"
     }
