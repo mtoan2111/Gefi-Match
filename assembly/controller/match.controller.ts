@@ -3,32 +3,35 @@ import { Match, MatchMode, MatchState } from "../model/match.model";
 import { AccountId, User } from "../model/user.model";
 import { MatchResult } from "../model/history.model";
 import { UserStorage } from "../storage/user.storage";
-import { FinishedMatchStorage, RunningMatchStorage, WaitingMatchStorage } from "../storage/match.storage";
+import { RunningMatchStorage, WaitingMatchStorage } from "../storage/match.storage";
 import { ErrorResponse } from "../helper/response.helper";
+import { pagination, PaginationResult } from "../helper/pagination.helper";
 
 /**
  * Change Function
  */
 
-export function createMatch(mode: MatchMode, bet: u128): String {
+export function createMatch(mode: MatchMode, bet: u128): Match {
     const user: User = UserStorage.get(Context.sender);
     user.subBalance(bet);
     user.save();
 
     let match = Match.create(bet, mode);
     match.save();
+
     logging.log("createMatch from: " + Context.sender + " bet: " + match.toString());
-    return match.id;
+
+    return match;
 }
 
 export function cancelMatch(id: string): String {
     let cMatch: Match | null = WaitingMatchStorage.get(id);
     if (cMatch == null) {
-        return ErrorResponse("0x0100"); // MATCH_NOT_FOUND
+        return ErrorResponse("Match not found");
     }
 
     if (cMatch.state !== MatchState.WAITING) {
-        return ErrorResponse("0x0110"); // MATCH_NOT_WAITING
+        return ErrorResponse("Can not cancel due to this match is not in Waiting state");
     }
 
     let owner: User = UserStorage.get(cMatch.owner);
@@ -42,7 +45,7 @@ export function finishMatch(id: string, result: MatchResult, winner: AccountId =
     let fMatch = RunningMatchStorage.get(id);
 
     if (fMatch == null) {
-        return ErrorResponse("0x0100"); // MATCH_NOT_FOUND
+        return ErrorResponse("0004");
     }
 
     let owner: User = UserStorage.get(fMatch.owner);
@@ -65,9 +68,9 @@ export function finishMatch(id: string, result: MatchResult, winner: AccountId =
                 owner.endGame(MatchResult.LOSE, fMatch.bet, fMatch);
                 break;
             }
-            return ErrorResponse("0x0111"); // WRONG_MATCH_RESULT
+            return ErrorResponse("Wrong Match Result ");
         default:
-            return ErrorResponse("0x0111"); // WRONG_MATCH_RESULT
+            return ErrorResponse("Wrong Match Result ");
     }
 
     fMatch.finish();
@@ -81,12 +84,12 @@ export function joinMatch(id: string): String {
 
     let wMatch: Match | null = WaitingMatchStorage.get(id);
     if (wMatch == null) {
-        return ErrorResponse("0x0100"); // MATCH_NOT_FOUND
+        return ErrorResponse("Current Match is not available");
     }
 
     let subBalanceResult = user.subBalance(wMatch.bet);
     if (u128.eq == null) {
-        return ErrorResponse("0x0220"); // BALANCE_NOT_ENOUGH
+        return ErrorResponse("Your balance is not enough! ");
     }
 
     wMatch.join(accountId);
@@ -97,11 +100,11 @@ export function startMatch(id: string): String {
     let sMatch: Match | null = WaitingMatchStorage.get(id);
 
     if (sMatch == null) {
-        return ErrorResponse("0x0100"); // MATCH_NOT_FOUND
+        return ErrorResponse("Match not found in Waiting Hall");
     }
 
     if (sMatch.competitor == null || sMatch.competitor == "") {
-        return ErrorResponse("0x0210"); // NO_COMPETITOR_FOUND
+        return ErrorResponse("No competitor found");
     }
 
     sMatch.start();
@@ -112,8 +115,10 @@ export function startMatch(id: string): String {
  * View function
  */
 
-export function getMatchs(): Match[] {
-    return WaitingMatchStorage.gets();
+export function getMatchs(page: i32): PaginationResult<Match> {
+    const matchs = WaitingMatchStorage.gets();
+    let results = pagination(matchs, page);
+    return results;
 }
 
 export function getMatch(id: String): Match | null {
