@@ -3,6 +3,7 @@ import { MatchHistory, MatchResult } from "./history.model";
 import { base58, Context, u128, util, logging } from "near-sdk-as";
 import { AccountId } from "./user.model";
 
+
 export enum MatchState {
     WAITING,
     RUNNING,

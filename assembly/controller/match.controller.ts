@@ -3,22 +3,25 @@ import { Match, MatchMode, MatchState } from "../model/match.model";
 import { AccountId, User } from "../model/user.model";
 import { MatchResult } from "../model/history.model";
 import { UserStorage } from "../storage/user.storage";
-import { FinishedMatchStorage, RunningMatchStorage, WaitingMatchStorage } from "../storage/match.storage";
+import { RunningMatchStorage, WaitingMatchStorage } from "../storage/match.storage";
 import { ErrorResponse } from "../helper/response.helper";
+import { pagination, PaginationResult } from "../helper/pagination.helper";
 
 /**
  * Change Function
  */
 
-export function createMatch(mode: MatchMode, bet: u128): String {
+export function createMatch(mode: MatchMode, bet: u128): Match {
     const user: User = UserStorage.get(Context.sender);
     user.subBalance(bet);
     user.save();
 
     let match = Match.create(bet, mode);
     match.save();
+
     logging.log("createMatch from: " + Context.sender + " bet: " + match.toString());
-    return match.id;
+
+    return match;
 }
 
 export function cancelMatch(id: string): String {
@@ -112,8 +115,10 @@ export function startMatch(id: string): String {
  * View function
  */
 
-export function getMatchs(): Match[] {
-    return WaitingMatchStorage.gets();
+export function getMatchs(page: i32): PaginationResult<Match> {
+    const matchs = WaitingMatchStorage.gets();
+    let results = pagination(matchs, page);
+    return results;
 }
 
 export function getMatch(id: String): Match | null {
