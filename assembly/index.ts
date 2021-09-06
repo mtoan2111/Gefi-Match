@@ -6,8 +6,9 @@ import { Match, MatchMode, MatchState } from "./model/match.model";
 import { User, AccountId } from "./model/user.model";
 import { MatchResult, MatchHistory } from "./model/history.model";
 import { u128 } from "near-sdk-as";
+import { PaginationResult } from "./helper/pagination.helper";
 
-export function createMatch(mode: MatchMode, bet: u128): String {
+export function createMatch(mode: MatchMode, bet: u128): Match {
     return match.createMatch(mode, bet);
 }
 
@@ -15,8 +16,8 @@ export function createUser(alias: string, bio: string, avatar: string): User {
     return user.createUser(alias, bio, avatar);
 }
 
-export function getMatchs(): Match[] {
-    return match.getMatchs();
+export function getMatchs(page: i32): PaginationResult<Match> {
+    return match.getMatchs(page);
 }
 
 export function getMatch(id: String): Match | null {
@@ -54,8 +55,8 @@ export function getUser(id: AccountId): User | null {
     return user.getUser(id);
 }
 
-export function getMatchHistory(id: AccountId): MatchHistory[] {
-    return history.getMatchHistory(id);
+export function getMatchHistory(id: AccountId, page: i32): PaginationResult<MatchHistory> {
+    return history.getMatchHistory(id, page);
 }
 
 export function deleteUser(id: AccountId): bool {
