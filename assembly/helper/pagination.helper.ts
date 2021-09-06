@@ -1,4 +1,4 @@
-import { math } from "near-sdk-core";
+import { logging, math } from "near-sdk-core";
 
 const PAGE_SIZE = 10;
 
@@ -23,12 +23,12 @@ export function pagination<T>(args: T[], page: i32): PaginationResult<T> {
         page = maxPage;
     }
 
-    const startIndex = (page - 1) * PAGE_SIZE;
-    const endIndex = min(args.length, startIndex + PAGE_SIZE);
+    const startIndex = args.length - (page - 1) * PAGE_SIZE - 1;
+    const endIndex = max(0, startIndex - PAGE_SIZE);
 
     let resultDatas = new Array<T>(PAGE_SIZE);
-    for (let i = startIndex; i < endIndex; i++) {
-        resultDatas[i - startIndex] = args[startIndex];
+    for (let i = startIndex; i >= endIndex; i--) {
+        resultDatas[startIndex - i] = args[i];
     }
     return new PaginationResult(page, args.length, resultDatas);
 }
