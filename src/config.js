@@ -1,5 +1,5 @@
-// const CONTRACT_NAME = "neutrino.testnet";
-const CONTRACT_NAME = "mtoan2193.testnet";
+// const CONTRACT_NAME = "gefimatch.neutrino.testnet";
+const CONTRACT_NAME = "gefi_match.testnet";
 
 function getConfig(env) {
     switch (env) {

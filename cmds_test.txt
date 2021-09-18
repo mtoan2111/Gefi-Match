@@ -33,3 +33,6 @@ near call neutrino.testnet getMatch  --account-id neutrino.testnet --gas=3000000
 
 near call neutrino.testnet finishMatch '{\"id\": \"C1tbALg81eAv864kXLhRtnboYsiobhTsxSqaLYEBN8bp2Piw\", \"result\":0, \"winner\":\"gefitesth.testnet\"}' --accountId neutrino.testnet --gas=300000000000000
 near call neutrino.testnet cancelMatch '{\"id\":\"C1tbALg81eAv864kXLhRtnboYsiobhTxpraR924mhyaDuWMQ\"}'  --account-id neutrino.testnet --gas=300000000000000
+
+
+near call neutrino.testnet ft_transfer '{\"receiver_id\":\"neutrinotest.testnet\",\"amount\":\"1500000000000000000000\" }'  --account-id neutrino.testnet --gas=300000000000000
