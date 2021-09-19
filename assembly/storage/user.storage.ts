@@ -9,6 +9,9 @@ export class UserStorage {
         if (users.contains(id)) {
             return users.getSome(id);
         }
+
+        const n_User = new User(id, "", "");
+        users.set(id, n_User);
         return new User(id, "", "");
     }
 

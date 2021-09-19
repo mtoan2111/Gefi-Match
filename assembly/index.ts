@@ -39,6 +39,7 @@ export function startMatch(id: string): String {
 export function cancelMatch(id: string): String {
     return match.cancelMatch(id);
 }
+
 // export function updateMatch(id: string, state: MatchState, result: MatchResult, winner: AccountId): bool {
 //     return match.updateMatch(id, state, result, winner);
 // }
